@@ -28,24 +28,30 @@ Write role ids. Do not write bot display names in this repository.
 
 | Field | Value |
 | --- | --- |
-| `task_id` | `TASK-LENDFLOW-DESIGN` |
+| `task_id` | `TASK-LENDFLOW-DATA-GEN` |
 | `graph_id` | `feature` |
-| Contract | [docs/tasks/TASK-LENDFLOW-DESIGN.yaml](docs/tasks/TASK-LENDFLOW-DESIGN.yaml) |
+| Contract | [docs/tasks/TASK-LENDFLOW-DATA-GEN.yaml](docs/tasks/TASK-LENDFLOW-DATA-GEN.yaml) |
 | `data_project` | `true` |
+| `architecture.impacted` | `false` |
 
-`data_project: true` means a later contract runs EDA before UI copy. It does not allow a generator, dbt project, warehouse, or dashboard in the design pull request.
+`data_project: true` still means EDA runs before UI copy. This contract is the generator and the sanity checks. It does not add a dashboard, Ask LendFlow, or dbt marts.
 
 Allowed paths:
 
 ```text
-README.md
-AGENTS.md
+data/
+scripts/
+notebooks/
 docs/
 specs/
+README.md
+AGENTS.md
+pyproject.toml
+requirements.txt
+Makefile
 .gitignore
-LENDFLOW_BRIEF.md
 ```
 
-Product docs, specs, and UI copy are English. No secrets, no `.env`, no real applicant data.
+Product docs and code comments are English. No secrets, no `.env`, no real applicant data.
 
 Barrilito and vaca-muerta-pulse are out of this repository.

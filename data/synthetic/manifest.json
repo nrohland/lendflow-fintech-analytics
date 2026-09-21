@@ -1,0 +1,31 @@
+{
+  "application_count_tolerance": {
+    "high": 102000,
+    "low": 98000
+  },
+  "experiment_name": "bank_connection_clarity",
+  "generator_version": "1.0.0",
+  "late_period_start": "2025-05-05T00:00:00Z",
+  "n_applicants": 96000,
+  "n_applications": 100000,
+  "row_counts": {
+    "applicants": 96000,
+    "applications": 100000,
+    "events": 665919,
+    "experiments": 100000,
+    "funding_events": 22351,
+    "underwriting_decisions": 45692
+  },
+  "schema_version": 1,
+  "seed": 20260921,
+  "tables": [
+    "applicants",
+    "applications",
+    "events",
+    "underwriting_decisions",
+    "funding_events",
+    "experiments"
+  ],
+  "window_end_exclusive": "2025-06-30T00:00:00Z",
+  "window_start": "2025-01-06T00:00:00Z"
+}

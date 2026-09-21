@@ -1,0 +1,164 @@
+version: "1.0"
+task_id: TASK-LENDFLOW-DATA-GEN
+role: builder
+status: draft_pr_open
+summary: >
+  Deterministic synthetic generator for 100,000 applications, six Parquet
+  tables, and a DuckDB sanity check. No dashboard, no dbt marts.
+  Architecture was not changed.
+repo: nrohland/lendflow-fintech-analytics
+base_sha: 0b00b7cbe0975c0d477a6b9525bb59f927ef1d66
+isolate:
+  branch: feat/lendflow-data-gen
+  base: main
+  base_sha: 0b00b7cbe0975c0d477a6b9525bb59f927ef1d66
+  worktree: /workspace
+  allowed_paths:
+    - data/
+    - scripts/
+    - notebooks/
+    - docs/
+    - specs/
+    - README.md
+    - AGENTS.md
+    - pyproject.toml
+    - requirements.txt
+    - Makefile
+    - .gitignore
+  outside_allowed_paths: none
+  product_code_files:
+    - scripts/lendflow_synth/
+    - scripts/check_synthetic_data.py
+    - Makefile
+    - pyproject.toml
+    - requirements.txt
+  data_project: true
+  data_generated: true
+  human_gate:
+    design_go: not_required
+    architecture_impacted: false
+    merge: owner_only
+    merged: false
+build:
+  seed: 20260921
+  n_applications: 100000
+  application_count_tolerance: [98000, 102000]
+  output: data/synthetic/
+  files:
+    - Makefile
+    - pyproject.toml
+    - requirements.txt
+    - .gitignore
+    - README.md
+    - AGENTS.md
+    - data/README.md
+    - data/synthetic/manifest.json
+    - data/synthetic/sanity_report.json
+    - data/synthetic/applicants.parquet
+    - data/synthetic/applications.parquet
+    - data/synthetic/events.parquet
+    - data/synthetic/underwriting_decisions.parquet
+    - data/synthetic/funding_events.parquet
+    - data/synthetic/experiments.parquet
+    - docs/data-generation.md
+    - docs/tasks/TASK-LENDFLOW-DATA-GEN.yaml
+    - docs/tasks/TASK-LENDFLOW-DATA-GEN-agent-result.yaml
+    - scripts/lendflow_synth/__init__.py
+    - scripts/lendflow_synth/__main__.py
+    - scripts/lendflow_synth/parameters.py
+    - scripts/lendflow_synth/generate.py
+    - scripts/check_synthetic_data.py
+  contract_copied_from_upload: true
+verify:
+  checks:
+    - id: sanity_script
+      result: pass
+      evidence: >
+        python scripts/check_synthetic_data.py exited 0.
+        45 checks passed, 0 failed. Report data/synthetic/sanity_report.json.
+    - id: uniqueness
+      result: pass
+      evidence: uniqueness checks on applicants, applications, events, decisions, funding, and experiment assignment
+    - id: fk_integrity
+      result: pass
+      evidence: fk.* checks, including event attributes copied from the application
+    - id: timestamp_ordering
+      result: pass
+      evidence: strictly increasing event timestamps, stage order, canonical clocks, no contract before submission
+    - id: no_funding_before_approval
+      result: pass
+      evidence: funding.only_after_approval, funding.row_iff_approved, funding.duration_and_timestamp
+    - id: valid_experiment_assignment
+      result: pass
+      evidence: >
+        one bank_connection_clarity row per application, variant in {control, treatment},
+        assigned_at equals started_at, application variant matches
+    - id: seeded_patterns
+      result: pass
+      evidence: >
+        Mobile Safari bank-completion gap 0.409 (control) and 0.311 (treatment) versus mobile Chrome.
+        social_prospecting is the largest channel; submission gap versus other channels 0.348;
+        approved-to-funded gap 0.284; approval gap 0.0002.
+        Manual share of decisions 0.120; share of decisions over 24 hours that are manual 0.866.
+        Late minus early approval 0.098; early minus late approved-to-funded 0.137;
+        late minus early funding rate -0.005; treatment share early 0.502 vs late 0.499.
+        Tablet identity success gap 0.311 and completer-duration ratio 5.15.
+        Treatment minus control bank completion 0.116; approval absolute difference 0.011;
+        identity-failure absolute difference 0.002; relative median time-to-submit difference 0.002.
+    - id: determinism
+      result: pass
+      evidence: >
+        Two generations to separate directories were byte-identical to each other and to
+        data/synthetic (parquet and manifest.json). Seed 20260921.
+        numpy 2.2.6, pandas 2.3.3, pyarrow 21.0.0, duckdb 1.4.4, Python 3.12.3.
+    - id: row_count
+      result: pass
+      evidence: applications=100000, inside the documented 98000-102000 band
+    - id: no_dashboard_or_dbt
+      result: pass
+      evidence: no apps/ tree and no transform/dbt files added
+    - id: no_real_lender_names
+      result: pass
+      evidence: no new-file match for a real lender name in scripts, docs/data-generation.md, or the task yaml
+    - id: no_bot_display_names
+      result: pass
+      evidence: role ids only; no bot display names added in the generator, docs, or task files
+    - id: architecture_untouched
+      result: pass
+      evidence: docs/architecture.md and docs/adr were not modified. architecture.impacted is false.
+    - id: draft_pr_open
+      result: pending
+      evidence: recorded after the draft pull request is opened
+evidence:
+  row_counts:
+    applicants: 96000
+    applications: 100000
+    events: 665919
+    underwriting_decisions: 45692
+    funding_events: 22351
+    experiments: 100000
+  funded_applications: 13065
+  sha256:
+    applicants.parquet: f453989d1f6f84857e8366525d2ae72ba262290a31b67203f19d7a8400f838cf
+    applications.parquet: 226ccae123f12c7469c514dd856977364542558b5ce08f53e422fdade773ecd9
+    events.parquet: 305035064e72258dd610b97641f0d125730c6eff7cef1c04c1ee46aded445130
+    experiments.parquet: 431ff72f4e48772ea64784094d0e8de6afb3cdb77a829d78fb0be8056a1329ad
+    funding_events.parquet: f855aeebb4278f4761c8ab2eb408b4cdde95b1f9cff969ea557ca5f00a1baa18
+    underwriting_decisions.parquet: 6b6927866107bb32fb4b0f828e37f73a4d4406d7dd464065385b058ab127acc7
+  sanity_report: data/synthetic/sanity_report.json
+draft_pr:
+  url: null
+  draft: true
+  state: open
+  merged: false
+  base: main
+  head: feat/lendflow-data-gen
+gaps:
+  - Decision SLA and funding SLA still have no numeric threshold. The 24-hour cut in the checker is not a product SLA.
+  - Guardrail equivalence margins are unset. The checker records gaps. It does not score a guardrail pass or fail for a ship decision.
+  - EDA has not been run. The seeded processes are generator inputs, not findings.
+  - dbt marts, the dashboard, and Ask LendFlow are later contracts.
+  - referred stays a terminal outcome. No second decision.
+  - 4,000 applications are a second in-window application. The spec still treats rows as independent.
+  - An unfinished bank connection or identity verification always has a failure event. There is no silent drop inside those stages.
+  - No CI workflow exists on main, so these checks ran locally.
