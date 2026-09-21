@@ -120,6 +120,11 @@ verify:
     - id: packages_yml_absent
       result: pass
       evidence: no packages.yml. None of the four tools is a Hub package.
+    - id: draft_pr_open
+      result: pass
+      evidence: >
+        https://github.com/nrohland/lendflow-fintech-analytics/pull/9
+        is draft, open, base main, head feat/lendflow-dbt-tooling-trial. Not merged.
 evidence:
   row_counts:
     fct_applications: 100000
@@ -143,8 +148,8 @@ evidence:
     dbt_checkpoint: v2.0.10
     dbt_osmosis_trial_venv_only: 1.5.0
 draft_pr:
-  url: ""
-  number: null
+  url: https://github.com/nrohland/lendflow-fintech-analytics/pull/9
+  number: 9
   draft: true
   state: open
   merged: false
