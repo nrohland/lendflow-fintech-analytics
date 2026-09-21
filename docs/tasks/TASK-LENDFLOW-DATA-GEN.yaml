@@ -1,0 +1,57 @@
+version: "1.0-min"
+task_id: TASK-LENDFLOW-DATA-GEN
+objective: >
+  Build a deterministic Python synthetic data generator for LendFlow (~100k applications),
+  write Parquet tables per analytical spec, and run sanity checks. No dashboard/UI in this contract.
+context: >
+  Repo: nrohland/lendflow-fintech-analytics. Phase 1 design merged.
+  Spec: specs/analytical-spec.md + docs/architecture.md (Option A).
+  Thesis: Approval isn't the finish line. Funding is.
+  Experiment: bank-connection UX; primary metric bank_connection_completion_rate
+  among apps that START bank connection.
+  Seeded signals 1–6 must be discoverable via EDA later (do not hardcode conclusions in data labels).
+  English-only docs/comments. Do NOT name any real lender.
+  Barrilito/Vaca Muerta out of scope.
+graph_id: feature
+owner: nrohland
+reviewer: independent-reviewer
+approvals:
+  create_draft_pr: true
+data_project: true
+architecture:
+  impacted: false
+scope:
+  allowed_paths:
+    - data/
+    - scripts/
+    - notebooks/  # optional sanity only; full EDA is next contract
+    - docs/
+    - specs/
+    - README.md
+    - AGENTS.md
+    - pyproject.toml
+    - requirements.txt
+    - Makefile
+    - .gitignore
+  forbidden:
+    - "**/.env"
+    - "**/secrets/**"
+    - apps/  # no Next.js UI this contract
+    - transform/dbt/**  # dbt is later contract unless tiny stub needed for paths
+  non_goals:
+    - Full EDA report / dashboard / Ask LendFlow
+    - dbt marts (Phase 4)
+    - Cloud warehouse
+    - Naming any real lender
+acceptance:
+  - Deterministic generator with fixed seed; reproducible Parquet outputs
+  - Core tables present: applicants, applications, events, underwriting_decisions, funding_events, experiments
+  - ~100k applications (± documented tolerance)
+  - Seeded analytical patterns 1–6 implemented as data-generating processes (not labeled spoilers in UI)
+  - Sanity checks pass: uniqueness, FK integrity, timestamp ordering, no funding before approval, valid experiment assignment
+  - Docs updated (EN): how to regenerate data; synthetic disclaimer; no real-lender names
+  - Draft PR; only nrohland merges
+constraints:
+  - Zero extra cloud cost (local Python/Parquet/DuckDB ok for checks)
+  - No bot display names in repo
+  - 1 Task Contract = 1 draft PR

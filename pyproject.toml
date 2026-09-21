@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lendflow-synth"
+version = "1.0.0"
+description = "Deterministic synthetic auto-loan application tables for the LendFlow case study."
+requires-python = ">=3.11"
+dependencies = [
+  "numpy>=2.1",
+  "pandas>=2.2",
+  "pyarrow>=18",
+  "duckdb>=1.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["scripts"]

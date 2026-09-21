@@ -4,7 +4,7 @@
 
 Product analytics for a synthetic auto-loan application. The question is where qualified applicants drop out, why, and which change to test first.
 
-**Unofficial portfolio case study. Not affiliated with any real lender. No proprietary data, systems, or internal metrics. When the dataset exists, it is 100% synthetic.**
+**Unofficial portfolio case study. Not affiliated with any real lender. No proprietary data, systems, or internal metrics. The tables in `data/synthetic/` are 100% synthetic.**
 
 ## In this repository
 
@@ -14,6 +14,7 @@ Phase 1 is the design package:
 - [Analytical spec](specs/analytical-spec.md) — lifecycle, metrics, experiment, seeded signals
 - [Brief](LENDFLOW_BRIEF.md) — frozen 2026-09-21
 - [Harness](AGENTS.md) — how contracts land as draft pull requests
+- [Synthetic data](docs/data-generation.md) — regenerate the Parquet tables
 
 The diagram is also an [Archify HTML file](docs/diagrams/lendflow-stack.html). Mermaid and JSON sources sit beside it.
 
@@ -29,6 +30,19 @@ DuckDB runs locally. There is no cloud warehouse. The dashboard and Ask LendFlow
 
 The primary experiment metric is `bank_connection_completion_rate`, among applications that start bank connection.
 
+## Synthetic data
+
+The generator writes 100,000 applications to `data/synthetic/`. It uses one fixed seed. Rebuild and checks:
+
+```bash
+make install
+make data
+```
+
+`make data` replaces the Parquet files and runs the sanity checks. Column rules, the seed, and the seeded processes are in [docs/data-generation.md](docs/data-generation.md).
+
+These tables are not a lender's book of record. Do not treat a rate in the files as a measured business result until EDA is written.
+
 ## Not built yet
 
-Data generation, EDA, dbt, the dashboard, and Ask LendFlow are later contracts. This design pull request does not add them.
+EDA, dbt, the dashboard, and Ask LendFlow are later contracts.

@@ -7,6 +7,9 @@ venv/
 .mypy_cache/
 .ruff_cache/
 .ipynb_checkpoints/
+*.egg-info/
+build/
+dist/
 
 # Local DuckDB. Source Parquet from a later contract is not ignored.
 *.duckdb
