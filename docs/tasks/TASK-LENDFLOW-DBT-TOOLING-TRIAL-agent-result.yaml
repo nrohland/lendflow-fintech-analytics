@@ -1,0 +1,163 @@
+version: "1.0"
+task_id: TASK-LENDFLOW-DBT-TOOLING-TRIAL
+role: builder
+status: draft_pr_open
+summary: >
+  Trial of reviewer skills, dbt-doctor 0.3.4, dbt-checkpoint v2.0.10, and
+  dbt-osmosis 1.5.0 on the local dbt-duckdb project. Checkpoint hooks and an
+  offline doctor scan are wired. Osmosis is held. Model SQL was not changed.
+  dbt build stayed green.
+repo: nrohland/lendflow-fintech-analytics
+base_sha: deb24cf80ea65c79a700fc2f059cbc776d8bfdc9
+isolate:
+  branch: feat/lendflow-dbt-tooling-trial
+  base: main
+  base_sha: deb24cf80ea65c79a700fc2f059cbc776d8bfdc9
+  worktree: /workspace
+  allowed_paths:
+    - transform/
+    - dbt/
+    - .pre-commit-config.yaml
+    - packages.yml
+    - docs/
+    - specs/
+    - scripts/
+    - AGENTS.md
+    - README.md
+    - Makefile
+    - requirements.txt
+    - pyproject.toml
+    - .gitignore
+  outside_allowed_paths: none
+  product_code_files:
+    - .pre-commit-config.yaml
+    - transform/.dbt-checkpoint.yaml
+    - Makefile
+    - requirements.txt
+  data_project: true
+  data_generated: false
+  human_gate:
+    design_go: not_required
+    architecture_impacted: false
+    merge: owner_only
+    merged: false
+recommendations:
+  - tool: agent_skills
+    ids_requested:
+      - dbt-reviewer
+      - dbt-model-reviewer
+    id_loaded_by_reviewer: dbt-model-review
+    recommendation: trial
+  - tool: dbt-doctor
+    version: 0.3.4
+    recommendation: trial
+  - tool: dbt-checkpoint
+    version: v2.0.10
+    recommendation: trial
+  - tool: dbt-osmosis
+    version: 1.5.0
+    recommendation: hold
+build:
+  engine: duckdb
+  dbt_duckdb: 1.11.0
+  dbt_core: 1.12.5
+  duckdb: 1.4.4
+  project: transform/
+  profile: transform/profiles.yml
+  command: make dbt-build
+  models_changed: false
+verify:
+  checks:
+    - id: dbt_build
+      result: pass
+      evidence: >
+        After the wiring, dbt 1.12.5 and dbt-duckdb 1.11.0.
+        make dbt-build finished PASS=110 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=110.
+        15 models, 94 data tests, 1 on-run-start hook. 6.15s.
+    - id: dbt_checkpoint
+      result: pass
+      evidence: >
+        pre-commit 4.6.2, dbt-checkpoint v2.0.10.
+        make dbt-checkpoint parsed, then all six hooks passed.
+        Clearing the stg_experiments description and re-parsing failed
+        check-model-has-description. The description was restored and parsed again.
+        transform/.dbt-checkpoint.yaml sets disable-tracking true. The hook
+        environment read that flag as True.
+    - id: dbt_doctor
+      result: pass
+      evidence: >
+        dbt-doctor 0.3.4, Node 22.14.0, --offline --preset default --lint
+        --manifest target/manifest.json --fail-on none.
+        make dbt-doctor exited 0. Score 80. 4 errors, 8 warnings.
+        Errors are no-select-star (2) and rejoining-upstream-concepts (2).
+    - id: dbt_osmosis
+      result: hold
+      evidence: >
+        dbt-osmosis 1.5.0 in a throwaway venv next to dbt-core 1.12.5 and
+        dbt-duckdb 1.11.0. analyze docs reported 0/58 columns documented.
+        The dbt manifest has descriptions on 18 of those 58. yaml document
+        --dry-run failed to introspect read_parquet sources and was not applied.
+        Not added to requirements.txt.
+    - id: reviewer_skill
+      result: pass
+      evidence: >
+        dbt-labs/dbt-agent-skills a8607fc02a67 does not publish dbt-reviewer
+        or dbt-model-reviewer. independent-reviewer is documented to load
+        skill id dbt-model-review (starter pack eb71c0912ee9) on diffs under
+        transform/models or transform/tests.
+    - id: no_dashboard
+      result: pass
+      evidence: no apps/ tree and no Ask LendFlow UI
+    - id: no_real_lender_names
+      result: pass
+      evidence: no new-file match for a real lender name
+    - id: no_bot_display_names
+      result: pass
+      evidence: role ids only
+    - id: architecture_untouched
+      result: pass
+      evidence: docs/architecture.md and docs/adr were not modified. architecture.impacted is false.
+    - id: packages_yml_absent
+      result: pass
+      evidence: no packages.yml. None of the four tools is a Hub package.
+evidence:
+  row_counts:
+    fct_applications: 100000
+    fct_application_funnel: 1400000
+    fct_underwriting: 45692
+    fct_funding: 22351
+    fct_experiment_results: 6
+    product_metrics: 8153
+  yaml_columns:
+    declared: 58
+    with_description: 18
+  dbt: "PASS=110 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=110"
+  python: "3.12.3"
+  node: "22.14.0"
+  packages:
+    dbt_core: 1.12.5
+    dbt_duckdb: 1.11.0
+    duckdb: 1.4.4
+    pre_commit: 4.6.2
+    dbt_doctor: 0.3.4
+    dbt_checkpoint: v2.0.10
+    dbt_osmosis_trial_venv_only: 1.5.0
+draft_pr:
+  url: ""
+  number: null
+  draft: true
+  state: open
+  merged: false
+  base: main
+  head: feat/lendflow-dbt-tooling-trial
+gaps:
+  - 40 of 58 declared YAML columns still have no description. Column-completeness hooks and an osmosis rewrite were left off on purpose.
+  - dbt-doctor rejoining-upstream-concepts flags any two parents that share source synthetic. fct_applications and product_metrics trip it. The default scan is advisory (--fail-on none).
+  - An absolute --manifest path is joined onto transform/ and the graph rules are skipped. The Makefile passes target/manifest.json.
+  - dbt-osmosis DocumentationChecker drops column descriptions when the column object is not a dict. On dbt 1.12.5 that reported 0/58 against 18 real descriptions.
+  - Source introspection failed on meta.external_location read_parquet calls. describe read_parquet(...) is a parser error.
+  - dbt-doctor does not see the dbt version because requirements.txt is at the repository root, not inside transform/.
+  - pre-commit install is not part of make install. A clean clone has no manifest until make dbt-parse or make dbt-build.
+  - No CI workflow runs these checks.
+  - Decision SLA, funding SLA, and guardrail margins are unchanged from TASK-LENDFLOW-DBT.
+  - EDA, the dashboard, and Ask LendFlow remain later contracts.

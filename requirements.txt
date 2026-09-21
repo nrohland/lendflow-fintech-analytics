@@ -3,3 +3,4 @@ pandas==2.3.3
 pyarrow==21.0.0
 duckdb==1.4.4
 dbt-duckdb==1.11.0
+pre-commit==4.6.2

@@ -1,0 +1,55 @@
+version: "1.0-min"
+task_id: TASK-LENDFLOW-DBT-TOOLING-TRIAL
+objective: >
+  Trial on LendFlow the dbt quality tooling discussed with the owner:
+  (1) agent skills dbt-reviewer / dbt-model-reviewer (grain, joins, tests, docs,
+  materializations, model logic), (2) dbt-doctor, (3) dbt-checkpoint,
+  (4) dbt-osmosis. Produce evidence of what works, adopt/trial/hold per tool,
+  and minimal wiring only where trial is positive — without bloating the demo.
+context: >
+  Repo: nrohland/lendflow-fintech-analytics. Phase 4 dbt PR #7 (must be on main
+  or this branch rebase onto it). Current stack: dbt Core + dbt-duckdb, no Hub
+  packages yet. EN-only. No real-lender names. Zero extra cloud cost.
+  Owner chose LendFlow trial now (not harness-only evaluate first).
+graph_id: feature
+owner: nrohland
+reviewer: independent-reviewer
+approvals:
+  create_draft_pr: true
+data_project: true
+architecture:
+  impacted: false
+scope:
+  allowed_paths:
+    - transform/
+    - dbt/
+    - .pre-commit-config.yaml
+    - packages.yml
+    - docs/
+    - specs/
+    - scripts/
+    - AGENTS.md
+    - README.md
+    - Makefile
+    - requirements.txt
+    - pyproject.toml
+    - .gitignore
+  forbidden:
+    - "**/.env"
+    - "**/secrets/**"
+    - apps/**  # no dashboard in this contract
+  non_goals:
+    - Full dashboard / Ask LendFlow
+    - Mandatory adopt of all four tools (evidence-based hold is OK)
+    - Naming any real lender
+    - dbt Cloud / MotherDuck
+acceptance:
+  - Short eval note (EN) per tool: purpose, install path, run command, result on this repo, recommend adopt|trial|hold|reject
+  - If adopt/trial: minimal config committed (e.g. packages.yml, pre-commit, docs how-to)
+  - If agent skills: document how Reviewer node should load them (ids + when); do not invent bot names in repo
+  - dbt build still green after any wiring
+  - Draft PR; only nrohland merges
+constraints:
+  - Prefer thin trial over large refactors
+  - Free/OSS paths only
+  - 1 Task Contract = 1 draft PR

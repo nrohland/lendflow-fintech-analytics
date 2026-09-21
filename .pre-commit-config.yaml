@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/dbt-checkpoint/dbt-checkpoint
+    rev: v2.0.10
+    hooks:
+      - id: check-model-has-description
+        args: ["--config", "transform/.dbt-checkpoint.yaml"]
+        files: ^transform/models/.*\.(sql|yml)$
+      - id: check-model-has-properties-file
+        args: ["--config", "transform/.dbt-checkpoint.yaml"]
+        files: ^transform/models/.*\.sql$
+      - id: check-script-semicolon
+        args: ["--config", "transform/.dbt-checkpoint.yaml"]
+        files: ^transform/(models|macros)/.*\.sql$
+      - id: check-script-has-no-table-name
+        args: ["--config", "transform/.dbt-checkpoint.yaml"]
+        files: ^transform/models/.*\.sql$
+      - id: check-model-has-tests
+        args: ["--config", "transform/.dbt-checkpoint.yaml", "--test-cnt", "1"]
+        files: ^transform/models/.*\.sql$
+      - id: check-source-table-has-description
+        args: ["--config", "transform/.dbt-checkpoint.yaml"]
+        files: ^transform/models/sources\.yml$

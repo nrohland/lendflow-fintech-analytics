@@ -55,6 +55,15 @@ make marts
 
 `make marts` rebuilds the models and writes `data/marts/`. That directory is gitignored. The export is the publish step. The dashboard does not query a live database.
 
+Quality checks from the tooling trial:
+
+```bash
+make dbt-checkpoint
+make dbt-doctor
+```
+
+What each command does, and which tools were left unwired, is in [docs/dbt-tooling-trial.md](docs/dbt-tooling-trial.md).
+
 `product_metrics` is the metric table. The primary experiment metric remains `bank_connection_completion_rate` among applications that start bank connection. The marts do not label a segment, a period, or a ship decision. EDA still has to read them.
 
 ## Not built yet
