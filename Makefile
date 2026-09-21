@@ -4,7 +4,13 @@ export PYTHONPATH
 VENV := .venv
 PY := $(VENV)/bin/python
 
-.PHONY: install generate check data
+export LENDFLOW_PARQUET_ROOT := $(CURDIR)/data/synthetic
+export LENDFLOW_DUCKDB := $(CURDIR)/transform/target/lendflow.duckdb
+export LENDFLOW_EXPORT_ROOT := $(CURDIR)/data/marts
+export DO_NOT_TRACK := 1
+export DBT_SEND_ANONYMOUS_USAGE_STATS := false
+
+.PHONY: install generate check data dbt-build dbt-export marts
 
 install:
 	python3 -m venv $(VENV)
@@ -18,3 +24,11 @@ check:
 	$(PY) scripts/check_synthetic_data.py
 
 data: generate check
+
+dbt-build:
+	$(VENV)/bin/dbt build --project-dir transform --profiles-dir transform --vars '{parquet_root: $(LENDFLOW_PARQUET_ROOT)}'
+
+dbt-export:
+	$(PY) scripts/export_marts.py
+
+marts: dbt-build dbt-export

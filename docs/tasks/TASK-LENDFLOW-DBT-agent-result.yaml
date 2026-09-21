@@ -1,0 +1,213 @@
+version: "1.0"
+task_id: TASK-LENDFLOW-DBT
+role: builder
+status: draft_pr_open
+summary: >
+  Local dbt-duckdb project over the synthetic Parquet tables. Staging,
+  intermediate, and marts, with tests for keys, lifecycle order, the
+  experiment, and funnel-to-fact reconciliation. No dashboard. Architecture
+  was not changed. Formal EDA is still deferred.
+repo: nrohland/lendflow-fintech-analytics
+base_sha: 8bc974d6eeaa4884e9025ad9d91a5ebb11d6e6fa
+isolate:
+  branch: feat/lendflow-dbt
+  base: main
+  base_sha: 8bc974d6eeaa4884e9025ad9d91a5ebb11d6e6fa
+  worktree: /workspace
+  allowed_paths:
+    - transform/
+    - dbt/
+    - models/
+    - macros/
+    - tests/
+    - data/
+    - scripts/
+    - docs/
+    - specs/
+    - README.md
+    - AGENTS.md
+    - Makefile
+    - pyproject.toml
+    - requirements.txt
+    - profiles.yml.example
+    - .gitignore
+  outside_allowed_paths: none
+  product_code_files:
+    - transform/
+    - scripts/export_marts.py
+    - Makefile
+    - requirements.txt
+    - pyproject.toml
+    - profiles.yml.example
+  data_project: true
+  data_generated: false
+  human_gate:
+    design_go: not_required
+    architecture_impacted: false
+    merge: owner_only
+    merged: false
+build:
+  engine: duckdb
+  dbt_duckdb: 1.11.0
+  dbt_core: 1.12.5
+  duckdb: 1.4.4
+  project: transform/
+  profile: transform/profiles.yml
+  command: make dbt-build
+  export_command: make marts
+  models:
+    staging:
+      - stg_applicants
+      - stg_applications
+      - stg_events
+      - stg_underwriting_decisions
+      - stg_funding_events
+      - stg_experiments
+    intermediate:
+      - int_application_funnel
+      - int_application_durations
+      - int_experiment_assignments
+    marts:
+      - fct_applications
+      - fct_application_funnel
+      - fct_underwriting
+      - fct_funding
+      - fct_experiment_results
+      - product_metrics
+  files:
+    - transform/dbt_project.yml
+    - transform/profiles.yml
+    - transform/macros/generate_schema_name.sql
+    - transform/macros/metric_aggs.sql
+    - transform/macros/normal_two_sided_p_value.sql
+    - transform/models/sources.yml
+    - transform/models/staging/
+    - transform/models/intermediate/
+    - transform/models/marts/
+    - transform/tests/
+    - scripts/export_marts.py
+    - docs/dbt.md
+    - docs/tasks/TASK-LENDFLOW-DBT.yaml
+    - docs/tasks/TASK-LENDFLOW-DBT-agent-result.yaml
+    - profiles.yml.example
+    - Makefile
+    - requirements.txt
+    - pyproject.toml
+    - .gitignore
+    - README.md
+    - AGENTS.md
+    - data/README.md
+verify:
+  checks:
+    - id: dbt_build
+      result: pass
+      evidence: >
+        dbt 1.12.5, dbt-duckdb 1.11.0, duckdb 1.4.4.
+        dbt build --project-dir transform --profiles-dir transform
+        --vars "{parquet_root: /workspace/data/synthetic}"
+        finished PASS=110 WARN=0 ERROR=0 SKIP=0 TOTAL=110.
+        15 models, 94 data tests, 1 on-run-start hook.
+    - id: uniqueness
+      result: pass
+      evidence: >
+        unique tests on applicant, application, event, decision, funding,
+        and experiment assignment keys. assert_composite_unique_keys passed
+        for the funnel grain, product_metrics grain, and experiment metric name.
+    - id: relationships
+      result: pass
+      evidence: >
+        relationship tests from applications to applicants, events to
+        applications and applicants, decisions, funding, and experiments
+        to applications, and marts back to fct_applications.
+    - id: lifecycle_ordering
+      result: pass
+      evidence: >
+        assert_lifecycle_timestamp_order, assert_no_contract_before_submission,
+        assert_no_funding_before_approval, assert_bank_connected_implies_started,
+        assert_status_matches_furthest_stage, assert_canonical_clocks,
+        assert_underwriting_path, and assert_decision_duration_matches_delta passed.
+    - id: experiment_integrity
+      result: pass
+      evidence: >
+        assert_experiment_integrity passed. One bank_connection_clarity row
+        per application, variant in {control, treatment}, assigned_at equals
+        started_at. fct_experiment_results has 6 metrics. Primary population
+        is applications with bank_connection_started (35016 control, 35111 treatment).
+    - id: funnel_fact_reconcile
+      result: pass
+      evidence: >
+        assert_funnel_fact_reconcile and assert_metric_identities passed.
+        Overall counts agree across fct_applications, fct_application_funnel,
+        and product_metrics: started 100000, submitted 45692, approved 22351,
+        funded 13065. Bank connection started 70127 and bank connected 56036.
+        Approved + referred + declined = decided, and auto + manual = decided, on every slice.
+    - id: mart_export
+      result: pass
+      evidence: >
+        scripts/export_marts.py wrote data/marts (gitignored).
+        fct_applications=100000, fct_application_funnel=1400000,
+        fct_underwriting=45692, fct_funding=22351,
+        fct_experiment_results=6, product_metrics=8153.
+        metrics.json includes the compiled mart SQL. product_decision is null.
+    - id: no_dashboard
+      result: pass
+      evidence: no apps/ tree and no Ask LendFlow UI
+    - id: no_spoiler_labels
+      result: pass
+      evidence: >
+        New models do not name a segment, channel, period, or ship decision
+        as a conclusion. device_browser and started_week are cuts.
+        null_rejected_at_alpha is the alpha 0.05 test result, not a recommendation.
+    - id: no_real_lender_names
+      result: pass
+      evidence: no new-file match for a real lender or network name in transform/, docs/dbt.md, or the task yaml
+    - id: no_bot_display_names
+      result: pass
+      evidence: role ids only
+    - id: architecture_untouched
+      result: pass
+      evidence: docs/architecture.md and docs/adr were not modified. architecture.impacted is false.
+    - id: draft_pr_open
+      result: pass
+      evidence: >
+        https://github.com/nrohland/lendflow-fintech-analytics/pull/7
+        is draft, open, base main, head feat/lendflow-dbt. Not merged.
+evidence:
+  row_counts:
+    fct_applications: 100000
+    fct_application_funnel: 1400000
+    fct_underwriting: 45692
+    fct_funding: 22351
+    fct_experiment_results: 6
+    product_metrics: 8153
+  overall:
+    applications_started: 100000
+    submitted_applications: 45692
+    approved_applications: 22351
+    funded_applications: 13065
+    bank_connection_started: 70127
+    bank_connected: 56036
+  dbt: "PASS=110 WARN=0 ERROR=0 SKIP=0 TOTAL=110"
+  python: "3.12.3"
+  packages:
+    dbt_core: 1.12.5
+    dbt_duckdb: 1.11.0
+    duckdb: 1.4.4
+draft_pr:
+  url: https://github.com/nrohland/lendflow-fintech-analytics/pull/7
+  number: 7
+  draft: true
+  state: open
+  merged: false
+  base: main
+  head: feat/lendflow-dbt
+gaps:
+  - Decision SLA and funding SLA still have no numeric threshold. Attainment is not in the marts. median_funding_duration_hours is the contract-to-fund clock, not an attainment percent.
+  - Guardrail equivalence margins are unset. null_rejected_at_alpha is only the two-sided test at alpha 0.05. On this build the approval_rate difference is 0.011 with p-value 0.018, so that flag is true for the approval guardrail. It is not a pass or fail of the guardrail, and it is not a ship decision.
+  - The median guardrail interval uses a normal approximation to the median's standard error. It is not the two-proportion z-test. test_method records that.
+  - Wald intervals are what the spec locks. They collapse when a proportion is 0 or 1.
+  - EDA has not been run. The marts expose cuts (device_browser, channel, week, underwriting_path, variant) and do not name a finding.
+  - The dashboard and Ask LendFlow are later contracts. metrics.json leaves product_decision null.
+  - referred stays a terminal outcome. No second decision.
+  - Applications are still treated as independent. About 4,000 are a second in-window application.
+  - No CI workflow exists on main, so dbt build ran locally.

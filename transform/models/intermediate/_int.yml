@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: int_application_funnel
+    description: >
+      One row per application. Lifecycle timestamps from the application
+      record, and the in-between stage timestamps from events. Failure
+      events are counts, not extra stages.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: int_application_durations
+    description: >
+      Completer durations derived from int_application_funnel.
+      Minutes unless the column name says hours. Null when the end
+      of the clock was not reached.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: int_experiment_assignments
+    description: >
+      One bank_connection_clarity assignment per application, plus whether
+      the application started bank connection and whether it connected.
+      The primary metric uses the started population.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+      - name: variant
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - control
+                  - treatment
+      - name: experiment_name
+        data_tests:
+          - not_null

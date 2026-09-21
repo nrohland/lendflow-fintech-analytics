@@ -19,6 +19,10 @@ dist/
 target/
 dbt_packages/
 logs/
+transform/.user.yml
+
+# Mart export from scripts/export_marts.py. Rebuild it; do not commit it.
+data/marts/
 
 # Next.js
 node_modules/

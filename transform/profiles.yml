@@ -1,0 +1,12 @@
+# Local DuckDB file. No warehouse, no credentials.
+# Run dbt from the repository root so the default paths resolve.
+lendflow:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('LENDFLOW_DUCKDB', 'transform/target/lendflow.duckdb') }}"
+      schema: main
+      threads: 4
+      settings:
+        TimeZone: UTC

@@ -28,27 +28,32 @@ Write role ids. Do not write bot display names in this repository.
 
 | Field | Value |
 | --- | --- |
-| `task_id` | `TASK-LENDFLOW-DATA-GEN` |
+| `task_id` | `TASK-LENDFLOW-DBT` |
 | `graph_id` | `feature` |
-| Contract | [docs/tasks/TASK-LENDFLOW-DATA-GEN.yaml](docs/tasks/TASK-LENDFLOW-DATA-GEN.yaml) |
+| Contract | [docs/tasks/TASK-LENDFLOW-DBT.yaml](docs/tasks/TASK-LENDFLOW-DBT.yaml) |
 | `data_project` | `true` |
 | `architecture.impacted` | `false` |
 
-`data_project: true` still means EDA runs before UI copy. This contract is the generator and the sanity checks. It does not add a dashboard, Ask LendFlow, or dbt marts.
+`data_project: true` still means EDA runs before UI copy. This contract is the dbt project on the Parquet tables. It does not add a dashboard or Ask LendFlow. Formal EDA is deferred. The marts must still be enough to find the seeded patterns without naming the conclusion.
 
 Allowed paths:
 
 ```text
+transform/
+dbt/
+models/
+macros/
+tests/
 data/
 scripts/
-notebooks/
 docs/
 specs/
 README.md
 AGENTS.md
+Makefile
 pyproject.toml
 requirements.txt
-Makefile
+profiles.yml.example
 .gitignore
 ```
 

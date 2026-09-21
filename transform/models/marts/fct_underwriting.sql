@@ -1,0 +1,27 @@
+select
+    application_id,
+    applicant_id,
+    submitted_at,
+    decision_at,
+    decision_timestamp,
+    decision,
+    underwriting_path,
+    manual_review_flag,
+    decision_duration_minutes,
+    risk_band,
+    underwriting_started_at,
+    manual_review_started_at,
+    experiment_variant,
+    device_type,
+    browser,
+    device_browser,
+    acquisition_channel,
+    returning_user,
+    age_band,
+    income_band,
+    employment_type,
+    state,
+    started_week,
+    started_month
+from {{ ref('fct_applications') }}
+where is_decided

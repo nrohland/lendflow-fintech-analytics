@@ -1,0 +1,15 @@
+# Copy of transform/profiles.yml.
+# Point dbt at it with: dbt build --project-dir transform --profiles-dir .
+# Or keep transform/profiles.yml and run `make dbt-build` from the repository root.
+#
+# The database file is local. Do not put secrets in this profile.
+lendflow:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('LENDFLOW_DUCKDB', 'transform/target/lendflow.duckdb') }}"
+      schema: main
+      threads: 4
+      settings:
+        TimeZone: UTC
