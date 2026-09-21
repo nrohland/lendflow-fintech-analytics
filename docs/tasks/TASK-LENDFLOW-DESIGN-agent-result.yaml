@@ -1,0 +1,146 @@
+version: "1.0"
+task_id: TASK-LENDFLOW-DESIGN
+role: builder
+status: verified_local
+summary: >
+  Design-only package for LendFlow Phase 1. Option A diagram, analytical spec
+  with the locked bank-connection grain, harness notes, and the frozen brief.
+  No generator, dbt project, or UI.
+repo: nrohland/lendflow-fintech-analytics
+base_sha: 7ad0041b653d5b45fc402e1aeb30210cd1e5caf9
+isolate:
+  branch: feat/lendflow-design-package
+  base: main
+  base_sha: 7ad0041b653d5b45fc402e1aeb30210cd1e5caf9
+  worktree: /workspace
+  allowed_paths:
+    - README.md
+    - AGENTS.md
+    - docs/
+    - specs/
+    - .gitignore
+    - LENDFLOW_BRIEF.md
+  outside_allowed_paths: none
+  product_code_files: none
+  data_project: true
+  data_generated: false
+  human_gate:
+    design_go: granted
+    merge: owner_only
+    merged: false
+build:
+  files:
+    - README.md
+    - AGENTS.md
+    - .gitignore
+    - LENDFLOW_BRIEF.md
+    - docs/architecture.md
+    - docs/adr/0001-lendflow-analytical-stack.md
+    - docs/diagrams/lendflow-stack.mmd
+    - docs/diagrams/lendflow-stack.archify.json
+    - docs/diagrams/lendflow-stack.html
+    - docs/diagrams/lendflow-stack.visual-check.json
+    - docs/diagrams/lendflow-stack.visual-check.html
+    - docs/diagrams/lendflow-stack.visual-check.1440x900.light.png
+    - docs/diagrams/lendflow-stack.visual-check.1440x900.dark.png
+    - docs/diagrams/lendflow-stack.visual-check.2048x1320.light.png
+    - docs/diagrams/lendflow-stack.visual-check.2048x1320.dark.png
+    - docs/tasks/TASK-LENDFLOW-DESIGN.yaml
+    - docs/tasks/TASK-LENDFLOW-DESIGN-agent-result.yaml
+    - specs/analytical-spec.md
+  brief_bytes_match_upload: true
+  contract_bytes_match_upload: true
+verify:
+  checks:
+    - id: allowed_paths
+      result: pass
+      evidence: walk of the worktree found no file outside the contract allow list
+    - id: no_product_code
+      result: pass
+      evidence: no .py, .sql, .tsx, .jsx, .ipynb, or dbt_project.yml
+    - id: brief_and_contract_unmodified
+      result: pass
+      evidence: diff -q against the uploaded brief and task contract
+    - id: q1_option_a
+      result: pass
+      evidence: docs/architecture.md decision log and docs/adr/0001-lendflow-analytical-stack.md status accepted
+    - id: q4_grain
+      result: pass
+      evidence: >
+        specs/analytical-spec.md defines bank_connection_completion_rate as
+        |C ∩ S| / |S|, S = applications with bank_connection_started
+    - id: option_c_rejected
+      result: pass
+      evidence: architecture alternatives table
+    - id: ask_lendflow_v1
+      result: pass
+      evidence: deterministic curated catalog only; live LLM listed as a non-goal
+    - id: charts_recharts
+      result: pass
+      evidence: architecture diagram sublabel and decision log
+    - id: archify_deliver
+      result: pass
+      evidence: >
+        archify deliver architecture --quality showcase. 9/9 checks, 0 errors,
+        0 warnings. spec sha256 75cadb0218d7dd2d42038c0d9456d35e7e995ebda63e8c9e6fb7e6578add1dbe
+        (3843 bytes). html sha256 5034b80d8282149e3a84b7aee481036c4db465c39d118ab8b3c25719a70c1df2
+        (809702 bytes). Hashes rechecked after the prose docs were written.
+    - id: archify_visual_check
+      result: pass
+      evidence: >
+        automated browser containment passed at 1440x900, 1600x1000, 1920x1080,
+        and 2048x1320. Receipt docs/diagrams/lendflow-stack.visual-check.json.
+        Tool field visualReview is pending. That field is not a perceptual approval.
+    - id: screenshot_read
+      result: pass_partial
+      evidence: >
+        Read 1440 light, 1440 dark, and 2048 light screenshots. Main path,
+        Dashboard, Ask LendFlow, and the three cards were readable in those
+        descriptions. Did not separately review the 2048 dark screenshot.
+        Not an owner sign-off.
+    - id: no_bot_display_names
+      result: pass
+      evidence: >
+        search for ren as a whole word, grok, claude, chatgpt, openai, anthropic
+        in markdown and the task yaml. No matches. Role ids only in AGENTS.md.
+    - id: no_fraud_trilemma_narrative
+      result: pass
+      evidence: no "trilemma" match in the worktree
+    - id: barrilito_scope
+      result: pass
+      evidence: >
+        the name appears only as an out-of-scope line in the committed contract,
+        AGENTS.md, and the spec non-goals. No Barrilito content was added.
+    - id: unit_tests
+      result: not_applicable
+      evidence: this contract has no application code and no test suite
+evidence:
+  archify:
+    type: architecture
+    quality_profile: showcase
+    spec_sha256: 75cadb0218d7dd2d42038c0d9456d35e7e995ebda63e8c9e6fb7e6578add1dbe
+    html_sha256: 5034b80d8282149e3a84b7aee481036c4db465c39d118ab8b3c25719a70c1df2
+    checks_passed: 9
+    check_count: 9
+    composition_errors: 0
+    composition_warnings: 0
+  visual_check_receipt: docs/diagrams/lendflow-stack.visual-check.json
+  screenshots:
+    - docs/diagrams/lendflow-stack.visual-check.1440x900.light.png
+    - docs/diagrams/lendflow-stack.visual-check.1440x900.dark.png
+    - docs/diagrams/lendflow-stack.visual-check.2048x1320.light.png
+    - docs/diagrams/lendflow-stack.visual-check.2048x1320.dark.png
+draft_pr:
+  url: null
+  draft: true
+  merged: false
+  note: url filled after the draft pull request is opened
+gaps:
+  - Decision SLA and funding SLA have no numeric threshold.
+  - Guardrail equivalence margins are unset. The spec reports intervals and does not score pass/fail.
+  - Seed integer, effect sizes, channel names, and risk_band levels are generator-contract parameters.
+  - Seeded signals are intents. EDA has not been run, so none of them are findings.
+  - Ask LendFlow answers are not written. They wait on the marts.
+  - Archify visualReview remains pending. Screenshot reading covered three of four captures.
+  - Referred-as-terminal is an assumption EDA may overturn. The primary denominator is not.
+  - No CI on this repository was run, because none exists on main.
