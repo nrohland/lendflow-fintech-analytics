@@ -1,7 +1,7 @@
 version: "1.0"
 task_id: TASK-LENDFLOW-DESIGN
 role: builder
-status: verified_local
+status: draft_pr_open
 summary: >
   Design-only package for LendFlow Phase 1. Option A diagram, analytical spec
   with the locked bank-connection grain, harness notes, and the frozen brief.
@@ -114,6 +114,12 @@ verify:
     - id: unit_tests
       result: not_applicable
       evidence: this contract has no application code and no test suite
+    - id: draft_pr_open
+      result: pass
+      evidence: >
+        https://github.com/nrohland/lendflow-fintech-analytics/pull/2
+        isDraft true, state OPEN, base main, head feat/lendflow-design-package.
+        Not merged.
 evidence:
   archify:
     type: architecture
@@ -131,10 +137,14 @@ evidence:
     - docs/diagrams/lendflow-stack.visual-check.2048x1320.light.png
     - docs/diagrams/lendflow-stack.visual-check.2048x1320.dark.png
 draft_pr:
-  url: null
+  url: https://github.com/nrohland/lendflow-fintech-analytics/pull/2
+  number: 2
   draft: true
+  state: open
   merged: false
-  note: url filled after the draft pull request is opened
+  base: main
+  head: feat/lendflow-design-package
+  confirmed_with: gh pr view 2 --json isDraft,state
 gaps:
   - Decision SLA and funding SLA have no numeric threshold.
   - Guardrail equivalence margins are unset. The spec reports intervals and does not score pass/fail.
