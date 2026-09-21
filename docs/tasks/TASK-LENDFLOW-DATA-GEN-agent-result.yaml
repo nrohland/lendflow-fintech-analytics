@@ -127,8 +127,10 @@ verify:
       result: pass
       evidence: docs/architecture.md and docs/adr were not modified. architecture.impacted is false.
     - id: draft_pr_open
-      result: pending
-      evidence: recorded after the draft pull request is opened
+      result: pass
+      evidence: >
+        https://github.com/nrohland/lendflow-fintech-analytics/pull/5
+        is draft, open, base main, head feat/lendflow-data-gen. Not merged.
 evidence:
   row_counts:
     applicants: 96000
@@ -147,7 +149,8 @@ evidence:
     underwriting_decisions.parquet: 6b6927866107bb32fb4b0f828e37f73a4d4406d7dd464065385b058ab127acc7
   sanity_report: data/synthetic/sanity_report.json
 draft_pr:
-  url: null
+  url: https://github.com/nrohland/lendflow-fintech-analytics/pull/5
+  number: 5
   draft: true
   state: open
   merged: false
