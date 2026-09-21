@@ -28,34 +28,41 @@ Write role ids. Do not write bot display names in this repository.
 
 | Field | Value |
 | --- | --- |
-| `task_id` | `TASK-LENDFLOW-DBT` |
+| `task_id` | `TASK-LENDFLOW-DBT-TOOLING-TRIAL` |
 | `graph_id` | `feature` |
-| Contract | [docs/tasks/TASK-LENDFLOW-DBT.yaml](docs/tasks/TASK-LENDFLOW-DBT.yaml) |
+| Contract | [docs/tasks/TASK-LENDFLOW-DBT-TOOLING-TRIAL.yaml](docs/tasks/TASK-LENDFLOW-DBT-TOOLING-TRIAL.yaml) |
 | `data_project` | `true` |
 | `architecture.impacted` | `false` |
 
-`data_project: true` still means EDA runs before UI copy. This contract is the dbt project on the Parquet tables. It does not add a dashboard or Ask LendFlow. Formal EDA is deferred. The marts must still be enough to find the seeded patterns without naming the conclusion.
+`data_project: true` still means EDA runs before UI copy. This contract is the dbt quality-tool trial. It does not add a dashboard, Ask LendFlow, or dbt marts.
 
 Allowed paths:
 
 ```text
 transform/
 dbt/
-models/
-macros/
-tests/
-data/
-scripts/
+.pre-commit-config.yaml
+packages.yml
 docs/
 specs/
-README.md
+scripts/
 AGENTS.md
+README.md
 Makefile
-pyproject.toml
 requirements.txt
-profiles.yml.example
+pyproject.toml
 .gitignore
 ```
+
+## Reviewer skills for dbt changes
+
+When a diff touches `transform/models/` or `transform/tests/`, `independent-reviewer` loads skill id `dbt-model-review` before commenting. The skill is the checklist in `dennis-liu-glean/ds-ai-skills-starter-pack` at `skills/dbt-model-review/SKILL.md` (commit `eb71c0912ee9`). It covers grain, joins, tests, docs, materialization, and model logic. It does not run dbt. Runtime evidence stays `make dbt-build`.
+
+Skill ids `dbt-reviewer` and `dbt-model-reviewer` are not loaded. They are not published by `dbt-labs/dbt-agent-skills` at `a8607fc02a67`.
+
+`using-dbt-for-analytics-engineering` is a builder skill. On this repo the builder stays on local dbt Core and DuckDB.
+
+The trial evidence and the `make dbt-checkpoint` / `make dbt-doctor` commands are in [docs/dbt-tooling-trial.md](docs/dbt-tooling-trial.md).
 
 Product docs and code comments are English. No secrets, no `.env`, no real applicant data.
 

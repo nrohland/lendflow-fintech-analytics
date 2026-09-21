@@ -119,6 +119,19 @@ The median guardrail is not a proportion. Its interval uses a normal approximati
 - approved + referred + declined = decided, and auto + manual = decided, on every slice
 - the primary completion rate matches the bank-connection step conversion, and the variant slices match `fct_experiment_results`
 
+## Quality tooling
+
+The trial notes for reviewer skills, dbt-doctor, dbt-checkpoint, and dbt-osmosis are in [dbt-tooling-trial.md](dbt-tooling-trial.md).
+
+```bash
+make dbt-checkpoint
+make dbt-doctor
+```
+
+`make dbt-checkpoint` parses the project, then runs the hooks in `.pre-commit-config.yaml`. The hooks read `transform/target/manifest.json`. That file is gitignored, so the parse step is what makes a fresh checkout pass.
+
+`make dbt-doctor` runs dbt-doctor 0.3.4 offline. It prints findings and exits 0. It is an advisory scan. `dbt build` remains the gate.
+
 ## Left out on purpose
 
 - A ship / iterate / do not ship label
