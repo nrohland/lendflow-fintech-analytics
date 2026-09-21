@@ -121,16 +121,17 @@ The median guardrail is not a proportion. Its interval uses a normal approximati
 
 ## Quality tooling
 
-The trial notes for reviewer skills, dbt-doctor, dbt-checkpoint, and dbt-osmosis are in [dbt-tooling-trial.md](dbt-tooling-trial.md).
+The trial notes for reviewer skills, dbt-doctor, dbt-checkpoint, and dbt-osmosis are in [dbt-tooling-trial.md](dbt-tooling-trial.md). Column descriptions, the git hook, and CI are in [dbt-quality.md](dbt-quality.md).
 
 ```bash
 make dbt-checkpoint
 make dbt-doctor
+make pre-commit-install
 ```
 
-`make dbt-checkpoint` parses the project, then runs the hooks in `.pre-commit-config.yaml`. The hooks read `transform/target/manifest.json`. That file is gitignored, so the parse step is what makes a fresh checkout pass.
+`make dbt-checkpoint` parses the project, then runs the hooks in `.pre-commit-config.yaml`. The hooks read `transform/target/manifest.json`. That file is gitignored, so the parse step is what makes a fresh checkout pass. `make pre-commit-install` parses and installs the same hooks as a git hook. The hook parses again before the checks.
 
-`make dbt-doctor` runs dbt-doctor 0.3.4 offline. It prints findings and exits 0. It is an advisory scan. `dbt build` remains the gate.
+`make dbt-doctor` runs dbt-doctor 0.3.4 offline. It prints findings and exits 0. It is an advisory scan. `dbt build` remains the gate. Pull requests run `dbt parse`, `dbt build`, and the checkpoint hooks in `.github/workflows/dbt.yml`.
 
 ## Left out on purpose
 

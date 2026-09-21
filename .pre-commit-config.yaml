@@ -1,8 +1,22 @@
+# The manifest is gitignored. The first hook parses so the checkpoint hooks
+# read descriptions from this commit, not from a stale target/manifest.json.
 repos:
+  - repo: local
+    hooks:
+      - id: dbt-parse
+        name: dbt parse
+        entry: make
+        args: ["dbt-parse"]
+        language: system
+        pass_filenames: false
+        files: ^transform/(models|macros)/
   - repo: https://github.com/dbt-checkpoint/dbt-checkpoint
     rev: v2.0.10
     hooks:
       - id: check-model-has-description
+        args: ["--config", "transform/.dbt-checkpoint.yaml"]
+        files: ^transform/models/.*\.(sql|yml)$
+      - id: check-model-columns-have-desc
         args: ["--config", "transform/.dbt-checkpoint.yaml"]
         files: ^transform/models/.*\.(sql|yml)$
       - id: check-model-has-properties-file

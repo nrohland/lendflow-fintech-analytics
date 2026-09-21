@@ -8,6 +8,7 @@ models:
       events are counts, not extra stages.
     columns:
       - name: application_id
+        description: Application grain after events are pivoted onto the application row.
         data_tests:
           - unique
           - not_null
@@ -19,6 +20,7 @@ models:
       of the clock was not reached.
     columns:
       - name: application_id
+        description: Application grain. A duration is null when that clock did not finish.
         data_tests:
           - unique
           - not_null
@@ -30,10 +32,12 @@ models:
       The primary metric uses the started population.
     columns:
       - name: application_id
+        description: Application grain. One bank_connection_clarity assignment.
         data_tests:
           - unique
           - not_null
       - name: variant
+        description: Assigned arm. control or treatment.
         data_tests:
           - not_null
           - accepted_values:
@@ -42,5 +46,6 @@ models:
                   - control
                   - treatment
       - name: experiment_name
+        description: bank_connection_clarity. Other experiment names are filtered out.
         data_tests:
           - not_null

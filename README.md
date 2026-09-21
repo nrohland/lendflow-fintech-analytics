@@ -62,7 +62,7 @@ make dbt-checkpoint
 make dbt-doctor
 ```
 
-What each command does, and which tools were left unwired, is in [docs/dbt-tooling-trial.md](docs/dbt-tooling-trial.md).
+What each command does, and which tools were left unwired, is in [docs/dbt-tooling-trial.md](docs/dbt-tooling-trial.md). Column descriptions, `make pre-commit-install`, and the pull-request workflow are in [docs/dbt-quality.md](docs/dbt-quality.md).
 
 `product_metrics` is the metric table. The primary experiment metric remains `bank_connection_completion_rate` among applications that start bank connection. The marts do not label a segment, a period, or a ship decision. EDA still has to read them.
 
