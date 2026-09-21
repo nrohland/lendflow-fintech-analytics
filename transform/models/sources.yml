@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: synthetic
+    description: >
+      Local Parquet written by the generator under data/synthetic.
+      Synthetic application tables for this case study. Not a lender book of record.
+    meta:
+      external_location: "read_parquet('{{ var('parquet_root') }}/{name}.parquet')"
+    tables:
+      - name: applicants
+        description: One row per synthetic person.
+      - name: applications
+        description: One row per application. Primary grain of the case study.
+      - name: events
+        description: One row per product event.
+      - name: underwriting_decisions
+        description: One terminal underwriting decision per decided application.
+      - name: funding_events
+        description: One row per approved application.
+      - name: experiments
+        description: One experiment assignment per application.

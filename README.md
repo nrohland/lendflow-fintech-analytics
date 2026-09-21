@@ -43,6 +43,20 @@ make data
 
 These tables are not a lender's book of record. Do not treat a rate in the files as a measured business result until EDA is written.
 
+## Governed models
+
+dbt runs locally on DuckDB and the Parquet files in `data/synthetic/`. Staging, intermediate models, and marts live under [transform/](transform/). How to build and how to export marts for a later Next.js app is in [docs/dbt.md](docs/dbt.md).
+
+```bash
+make install
+make dbt-build
+make marts
+```
+
+`make marts` rebuilds the models and writes `data/marts/`. That directory is gitignored. The export is the publish step. The dashboard does not query a live database.
+
+`product_metrics` is the metric table. The primary experiment metric remains `bank_connection_completion_rate` among applications that start bank connection. The marts do not label a segment, a period, or a ship decision. EDA still has to read them.
+
 ## Not built yet
 
-EDA, dbt, the dashboard, and Ask LendFlow are later contracts.
+EDA, the dashboard, and Ask LendFlow are later contracts.

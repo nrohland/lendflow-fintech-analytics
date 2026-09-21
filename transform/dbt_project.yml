@@ -1,0 +1,43 @@
+name: lendflow
+version: "1.0.0"
+config-version: 2
+profile: lendflow
+require-dbt-version: [">=1.8.0", "<2.0.0"]
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+log-path: "logs"
+clean-targets:
+  - target
+  - dbt_packages
+  - logs
+
+on-run-start:
+  - "set TimeZone = 'UTC'"
+
+vars:
+  # Relative to the working directory. `make dbt-build` overrides this with an absolute path.
+  # Do not wrap this value in env_var(): the source location is formatted again for {name}.
+  parquet_root: "data/synthetic"
+  experiment_name: bank_connection_clarity
+  # Two-sided 95% normal critical value.
+  z_critical_95: 1.959963984540054
+  # sqrt(pi / 2). Asymptotic SE of a normal median is this factor times sigma / sqrt(n).
+  median_se_factor: 1.2533141373155003
+
+models:
+  lendflow:
+    +persist_docs:
+      relation: true
+      columns: true
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts

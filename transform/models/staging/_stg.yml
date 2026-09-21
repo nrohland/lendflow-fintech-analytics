@@ -1,0 +1,210 @@
+version: 2
+
+models:
+  - name: stg_applicants
+    description: Staged applicant attributes. One row per person.
+    columns:
+      - name: applicant_id
+        description: Surrogate person key.
+        data_tests:
+          - unique
+          - not_null
+      - name: created_at
+        data_tests:
+          - not_null
+      - name: returning_user
+        description: >
+          True when the person record was created at least 30 days before
+          their first in-window application. Not a count of applications.
+
+  - name: stg_applications
+    description: Staged applications. One row per application.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+      - name: applicant_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_applicants')
+                field: applicant_id
+      - name: started_at
+        data_tests:
+          - not_null
+      - name: application_status
+        description: Furthest lifecycle state reached.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - started
+                  - personal_info_completed
+                  - bank_connection_started
+                  - bank_connected
+                  - identity_verified
+                  - submitted
+                  - approved
+                  - referred
+                  - declined
+                  - vehicle_selected
+                  - contracted
+                  - funded
+      - name: underwriting_path
+        description: auto or manual once a decision exists. Null before that.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - auto
+                  - manual
+      - name: experiment_variant
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - control
+                  - treatment
+
+  - name: stg_events
+    description: Staged product events. One row per event.
+    columns:
+      - name: event_id
+        data_tests:
+          - unique
+          - not_null
+      - name: application_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_applications')
+                field: application_id
+      - name: applicant_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_applicants')
+                field: applicant_id
+      - name: event_timestamp
+        data_tests:
+          - not_null
+      - name: event_name
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - application_started
+                  - personal_info_completed
+                  - bank_connection_started
+                  - bank_connection_failed
+                  - bank_connected
+                  - identity_verification_started
+                  - identity_verification_failed
+                  - identity_verified
+                  - application_submitted
+                  - underwriting_started
+                  - manual_review_started
+                  - decision_approved
+                  - decision_declined
+                  - decision_referred
+                  - vehicle_selected
+                  - contract_started
+                  - contract_signed
+                  - funding_started
+                  - loan_funded
+
+  - name: stg_underwriting_decisions
+    description: One terminal decision per decided application. No second decision.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_applications')
+                field: application_id
+      - name: decision
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - approved
+                  - referred
+                  - declined
+      - name: decision_path
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - auto
+                  - manual
+      - name: decision_timestamp
+        data_tests:
+          - not_null
+      - name: decision_duration_minutes
+        description: decision_timestamp minus submitted_at, in minutes.
+        data_tests:
+          - not_null
+      - name: risk_band
+        description: Synthetic segment stored on the decision. Not a credit score.
+        data_tests:
+          - not_null
+
+  - name: stg_funding_events
+    description: One row per approved application, funded or not.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_applications')
+                field: application_id
+      - name: funding_status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - funded
+                  - not_funded
+
+  - name: stg_experiments
+    description: Assignment at application start for bank_connection_clarity.
+    columns:
+      - name: application_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_applications')
+                field: application_id
+      - name: experiment_name
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - bank_connection_clarity
+      - name: variant
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - control
+                  - treatment
+      - name: assigned_at
+        data_tests:
+          - not_null

@@ -1,0 +1,174 @@
+version: 2
+
+models:
+  - name: fct_applications
+    description: >
+      One row per application. Lifecycle flags, segment attributes, the
+      bank_connection_clarity assignment, and the clocks the metrics use.
+      This is the grain the funnel and product_metrics roll up from.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+      - name: applicant_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_applicants')
+                field: applicant_id
+      - name: experiment_variant
+        description: Variant from the assignment row. control or treatment.
+      - name: device_browser
+        description: device_type and browser joined with a pipe. A cut, not a label.
+      - name: started_week
+        description: Monday of started_at in UTC, as YYYY-MM-DD.
+      - name: started_month
+        description: First day of the UTC month of started_at, as YYYY-MM-DD.
+      - name: decision_duration_minutes
+        description: Recorded decision clock, decision_timestamp minus submitted_at, in minutes.
+      - name: funding_duration_hours
+        description: Recorded funded_at minus contracted_at, in hours. Null when the loan is not funded. The SLA limit is unset.
+      - name: hours_decision_to_funded
+        description: funded_at minus decision_at, in hours, among funded loans. This is median_time_to_funding.
+      - name: time_to_submit_minutes
+        description: submitted_at minus started_at, in minutes, among submitted applications.
+      - name: reached_bank_connection_started
+        description: True when the application has bank_connection_started. Denominator of the primary experiment metric.
+      - name: reached_bank_connected
+        description: True when the application reached bank_connected. A failure event does not clear this flag.
+
+  - name: fct_application_funnel
+    description: >
+      One row per application and stage. stage_order is a display sequence.
+      Conversion follows next_stage_name, not the next order number.
+      identity_verification_started is a work stage inside bank-connected
+      to identity-verified. reached_next and step_duration_minutes are null
+      when the stage was not reached or when it has no next stage.
+      had_failure is null when the stage has no failure event, including
+      when the application did not enter the stage. It is not zero in that case.
+    columns:
+      - name: application_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_applications')
+                field: application_id
+      - name: stage_name
+        data_tests:
+          - not_null
+      - name: reached
+        data_tests:
+          - not_null
+
+  - name: fct_underwriting
+    description: One row per decided application. Referred and declined stop here.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_applications')
+                field: application_id
+      - name: decision
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - approved
+                  - referred
+                  - declined
+      - name: decision_duration_minutes
+        description: Minutes from submitted_at to the decision. No SLA attainment column; the limit is unset.
+
+  - name: fct_funding
+    description: >
+      One row per approved application. funding_status is funded or not_funded.
+      funding_duration_hours is the contract-to-fund clock. The funding SLA limit is unset,
+      so this mart does not contain an attainment flag.
+    columns:
+      - name: application_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_applications')
+                field: application_id
+      - name: funding_status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - funded
+                  - not_funded
+
+  - name: fct_experiment_results
+    description: >
+      One row per experiment metric. The primary metric is
+      bank_connection_completion_rate among applications that start bank
+      connection. Absolute difference is treatment minus control.
+      Proportion intervals are Wald 95 percent intervals. The median guardrail
+      uses a normal approximation to the SE of the median, labeled in
+      test_method. null_rejected_at_alpha is the statistical comparison at
+      alpha 0.05. It is not a ship decision. Guardrails have no pass or fail flag.
+    columns:
+      - name: metric_name
+        data_tests:
+          - unique
+          - not_null
+      - name: metric_role
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - primary
+                  - secondary
+                  - guardrail
+                  - exploratory
+      - name: null_rejected_at_alpha
+        description: >
+          True when the two-sided p-value is below 0.05. Statistical result only.
+          The mart does not recommend ship, iterate, or do not ship.
+
+  - name: product_metrics
+    description: >
+      Governed metric rows. Grain is metric_name, stage_name, slice_name, slice_value.
+      stage_name is null when the metric is not a funnel step.
+      slice_name overall uses slice_value all.
+      Rates are proportions in [0, 1]. Count metrics put the count in
+      metric_value and numerator, with a null denominator.
+      Medians put the median in metric_value and the completer count in denominator.
+      device_browser is device_type || '|' || browser.
+      started_week is the UTC Monday. risk_band and underwriting_path slices
+      exist only for decision and post-approval metrics, because risk and path
+      are unknown before a decision.
+      Decision SLA attainment and funding SLA attainment are omitted. The limits are unset.
+      error_rate is null on stages with no failure event. It is not filled with zero.
+    columns:
+      - name: metric_name
+        data_tests:
+          - not_null
+      - name: slice_name
+        data_tests:
+          - not_null
+      - name: slice_value
+        data_tests:
+          - not_null
+      - name: unit
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - count
+                  - proportion
+                  - minutes
+                  - hours

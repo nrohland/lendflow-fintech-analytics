@@ -8,3 +8,5 @@ make data
 ```
 
 `make data` overwrites this directory and writes `sanity_report.json`.
+
+`make marts` writes a separate export under `data/marts/`. That directory is gitignored. See [docs/dbt.md](../docs/dbt.md).

@@ -1,0 +1,59 @@
+version: "1.0-min"
+task_id: TASK-LENDFLOW-DBT
+objective: >
+  Build dbt-duckdb staging → intermediate → marts over LendFlow Parquet sources,
+  with schema docs and meaningful tests (including metric reconciliation).
+  Governed analytical layer only — no Next.js dashboard in this contract.
+context: >
+  Repo: nrohland/lendflow-fintech-analytics. Phase 2 data gen on main.
+  Owner skipped formal Phase 3 EDA for now — dbt must still enable discovery of
+  seeded patterns via marts/metrics; do not hardcode spoiler labels in models.
+  Architecture Option A: Parquet → DuckDB+dbt → mart export → Next (later).
+  Primary experiment metric grain: bank_connection_completion among apps that
+  START bank connection. EN-only. No real-lender names.
+graph_id: feature
+owner: nrohland
+reviewer: independent-reviewer
+approvals:
+  create_draft_pr: true
+data_project: true
+architecture:
+  impacted: false
+scope:
+  allowed_paths:
+    - transform/
+    - dbt/
+    - models/
+    - macros/
+    - tests/
+    - data/
+    - scripts/
+    - docs/
+    - specs/
+    - README.md
+    - AGENTS.md
+    - Makefile
+    - pyproject.toml
+    - requirements.txt
+    - profiles.yml.example
+    - .gitignore
+  forbidden:
+    - "**/.env"
+    - "**/secrets/**"
+    - apps/**  # dashboard later
+  non_goals:
+    - Next.js / Ask LendFlow UI
+    - Formal EDA notebook (deferred)
+    - Cloud warehouse
+    - Naming any real lender
+acceptance:
+  - dbt project runs against local DuckDB + Parquet sources
+  - staging / intermediate / marts present (applications, funnel, underwriting, funding, experiment_results, product_metrics)
+  - Tests: uniqueness, relationships, lifecycle ordering, experiment integrity, funnel↔fact reconcile
+  - Documented how to run dbt build + export marts for Next (EN)
+  - No real-lender names
+  - Draft PR; only nrohland merges
+constraints:
+  - Zero extra cloud cost
+  - No bot display names in repo
+  - 1 Task Contract = 1 draft PR
