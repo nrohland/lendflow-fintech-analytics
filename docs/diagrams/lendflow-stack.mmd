@@ -1,0 +1,14 @@
+flowchart LR
+  subgraph localPlane ["Local analytical plane"]
+    generator["Python<br/>synthetic generator"] -->|"writes tables"| parquet["Parquet<br/>source tables"]
+    parquet -->|"scans"| duckdbDbt["DuckDB + dbt<br/>local models"]
+    duckdbDbt -->|"exports marts"| marts["Mart export<br/>Parquet / JSON"]
+  end
+  subgraph portfolioApp ["Portfolio app"]
+    nextApp["Next.js<br/>portfolio app"]
+    dashboard["Dashboard<br/>Recharts"]
+    ask["Ask LendFlow<br/>curated Q&A"]
+  end
+  marts -->|"frozen metrics"| nextApp
+  nextApp -->|"governed metrics"| dashboard
+  nextApp -->|"same metrics"| ask

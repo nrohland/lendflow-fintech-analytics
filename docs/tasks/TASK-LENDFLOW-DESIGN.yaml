@@ -1,0 +1,53 @@
+# Design Task Contract — LendFlow (Phase 1)
+version: "1.0-min"
+task_id: TASK-LENDFLOW-DESIGN
+objective: >
+  Produce the design package for LendFlow (EN-only portfolio case study):
+  docs/architecture.md (diagram-first via Archify + editable Mermaid),
+  concise analytical spec from the frozen brief, repo skeleton aligned to
+  harness v1, ready for human gate before data generation.
+context: >
+  Brief: LENDFLOW_BRIEF.md / owner freeze 2026-09-21.
+  Pitch: "Approval isn't the finish line. Funding is."
+  Northstar UX: https://ecommerce-profitability-analytics.vercel.app/
+  Stack: Python → Parquet → DuckDB → dbt → Next.js + Ask LendFlow.
+  Synthetic ~100k apps; EDA before UI; bank-connection experiment.
+  Not affiliated with Lendbuzz. No proprietary data.
+  Barrilito/Vaca Muerta stays on Codex — out of scope.
+graph_id: feature
+owner: nrohland
+reviewer: independent-reviewer
+approvals:
+  create_draft_pr: true
+data_project: true
+scope:
+  allowed_paths:
+    - README.md
+    - AGENTS.md
+    - docs/
+    - specs/
+    - .gitignore
+    - LENDFLOW_BRIEF.md
+  forbidden:
+    - "**/.env"
+    - "**/secrets/**"
+    - real applicant / Lendbuzz proprietary data
+  non_goals:
+    - Full data generator / dbt / dashboard implementation (later contracts)
+    - Cloud warehouse (BQ/Snowflake), Airflow, auth, production LLM infra
+    - Cloning ecommerce Northstar content
+    - Barrilito / vaca-muerta-pulse
+acceptance:
+  - docs/architecture.md exists: objective, Archify/canonical diagram, chosen architecture, trade-offs, alternatives, chronological decision log, open decisions
+  - Analytical spec captures lifecycle, metrics, experiment (bank_connection_completion_rate primary), seeded signals, non-goals, success criteria
+  - AGENTS.md points at harness v1 operating model (orchestrator router → scoped sub-agents; 1 contract = 1 PR; grill-me at kickoff done)
+  - Repo public nrohland/lendflow with EN README thesis + synthetic/disclaimer
+  - Draft PR for design-only scope; no product UI/data gen yet
+constraints:
+  - English only for product docs/UI copy
+  - Diagram-first docs (Archify)
+  - Zero extra cloud cost path (DuckDB local)
+  - No bot display names in repo code — role ids only
+  - Human merge only nrohland
+architecture:
+  impacted: true

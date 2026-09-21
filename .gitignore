@@ -1,0 +1,35 @@
+# Python (generator and EDA, later contracts)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local DuckDB. Source Parquet from a later contract is not ignored.
+*.duckdb
+*.duckdb.wal
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Next.js
+node_modules/
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets. Do not commit these.
+.env
+.env.*
+!.env.example
+secrets/
+
+# OS
+.DS_Store
