@@ -12,7 +12,7 @@ context: >
   Northstar UX: https://ecommerce-profitability-analytics.vercel.app/
   Stack: Python → Parquet → DuckDB → dbt → Next.js + Ask LendFlow.
   Synthetic ~100k apps; EDA before UI; bank-connection experiment.
-  Not affiliated with Lendbuzz. No proprietary data.
+  Not affiliated with any real lender. No proprietary data.
   Barrilito/Vaca Muerta stays on Codex — out of scope.
 graph_id: feature
 owner: nrohland
@@ -31,7 +31,7 @@ scope:
   forbidden:
     - "**/.env"
     - "**/secrets/**"
-    - real applicant / Lendbuzz proprietary data
+    - real applicant / a fictional auto lender proprietary data
   non_goals:
     - Full data generator / dbt / dashboard implementation (later contracts)
     - Cloud warehouse (BQ/Snowflake), Airflow, auth, production LLM infra

@@ -4,7 +4,7 @@
 
 Product analytics for a synthetic auto-loan application. The question is where qualified applicants drop out, why, and which change to test first.
 
-**Unofficial portfolio case study. Not affiliated with Lendbuzz. No proprietary data, systems, or internal metrics. When the dataset exists, it is 100% synthetic.**
+**Unofficial portfolio case study. Not affiliated with any real lender. No proprietary data, systems, or internal metrics. When the dataset exists, it is 100% synthetic.**
 
 ## In this repository
 

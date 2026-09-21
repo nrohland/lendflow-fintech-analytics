@@ -248,7 +248,7 @@ Every application is assigned. Signals 1–5 must not be implemented by variant.
 
 **Control.** Current bank-connection experience.
 
-**Treatment.** Shorter copy that explains why bank connection is required and that income verification is meant to be fast. This is not a Lendbuzz or Plaid interface.
+**Treatment.** Shorter copy that explains why bank connection is required and that income verification is meant to be fast. This is not a a fictional auto lender or Plaid interface.
 
 ### Estimands
 
@@ -381,7 +381,7 @@ Out of V1, and out of this design pull request:
 
 - Data generator, Parquet files, dbt models, Next.js app, dashboard UI.
 - Airflow, Dagster, Kafka, GCP, BigQuery, Snowflake, Databricks, Kubernetes.
-- Production ML, real credit scoring, real applicant data, real Lendbuzz data.
+- Production ML, real credit scoring, real applicant data, real a fictional auto lender data.
 - Authentication, multi-user permissions, production LLM infrastructure.
 - Live DuckDB in the browser or on the server (Option B).
 - Cloning the Northstar ecommerce narrative.

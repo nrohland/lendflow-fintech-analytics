@@ -8,7 +8,7 @@ Show how a senior product analyst would find where an auto-loan application lose
 
 Thesis: **Approval isn't the finish line. Funding is.**
 
-The case study is fictional and synthetic. It is not affiliated with Lendbuzz.
+The case study is fictional and synthetic. It is Not affiliated with any real lender.
 
 ## Canonical diagram
 

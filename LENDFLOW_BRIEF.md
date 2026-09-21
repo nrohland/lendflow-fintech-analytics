@@ -41,7 +41,7 @@ The project should demonstrate:
 - Clear recommendations tied to product/business outcomes.
 - AI-assisted analytics over the same governed metric layer.
 
-This is a **fictional case study using 100% synthetic data**. It is not affiliated with Lendbuzz and must not imply access to Lendbuzz proprietary data, systems, customers, models, or internal metrics.
+This is a **fictional case study using 100% synthetic data**. It is Not affiliated with any real lender. and must not imply access to a fictional auto lender proprietary data, systems, customers, models, or internal metrics.
 
 ---
 
@@ -377,7 +377,7 @@ Current bank-connection experience.
 
 Simplified copy / UX explaining why bank connection is required and emphasizing secure, fast income verification.
 
-Do not claim this reproduces a real Lendbuzz or Plaid interface.
+Do not claim this reproduces a real a fictional auto lender or Plaid interface.
 
 ## Primary metric
 
@@ -768,7 +768,7 @@ Do **not** add these unless a concrete requirement emerges:
 - production ML models
 - real credit scoring
 - real applicant data
-- real Lendbuzz data
+- real a fictional auto lender data
 - complex agent orchestration
 - authentication
 - multi-user permissions
@@ -832,6 +832,6 @@ Overview
 → Recommendation
 ```
 
-The goal is not to present a fictional answer about Lendbuzz.
+The goal is not to present a fictional answer about a fictional auto lender.
 
 The goal is to demonstrate **how the analysis would be approached**.
