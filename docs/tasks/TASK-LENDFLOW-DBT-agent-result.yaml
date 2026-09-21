@@ -168,8 +168,10 @@ verify:
       result: pass
       evidence: docs/architecture.md and docs/adr were not modified. architecture.impacted is false.
     - id: draft_pr_open
-      result: pending
-      evidence: draft pull request URL recorded after open
+      result: pass
+      evidence: >
+        https://github.com/nrohland/lendflow-fintech-analytics/pull/7
+        is draft, open, base main, head feat/lendflow-dbt. Not merged.
 evidence:
   row_counts:
     fct_applications: 100000
@@ -192,8 +194,8 @@ evidence:
     dbt_duckdb: 1.11.0
     duckdb: 1.4.4
 draft_pr:
-  url: null
-  number: null
+  url: https://github.com/nrohland/lendflow-fintech-analytics/pull/7
+  number: 7
   draft: true
   state: open
   merged: false
