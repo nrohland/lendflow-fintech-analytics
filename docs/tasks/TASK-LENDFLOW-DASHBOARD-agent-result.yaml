@@ -1,0 +1,92 @@
+version: "1.0"
+task_id: TASK-LENDFLOW-DASHBOARD
+role: builder
+status: draft_pr_open
+summary: >
+  Next.js dashboard in web/ with Overview, Application Funnel, Operations,
+  and Experiment. Pages import web/src/data/dashboard.json, written by
+  scripts/export_marts.py from product_metrics and fct_experiment_results.
+  product_decision stays null, so Ship, Iterate, and Do not ship stay
+  unselected. make web-build completed on Next.js 16.3.5.
+repo: nrohland/lendflow-fintech-analytics
+base_sha: 4b0eb99bd18ece30ac1f99265379347c226eb182
+isolate:
+  branch: feat/lendflow-dashboard
+  base: main
+  base_sha: 4b0eb99bd18ece30ac1f99265379347c226eb182
+  worktree: /workspace
+  allowed_paths:
+    - apps/
+    - web/
+    - frontend/
+    - package.json
+    - pnpm-lock.yaml
+    - yarn.lock
+    - package-lock.json
+    - next.config.*
+    - tsconfig.json
+    - tailwind.config.*
+    - postcss.config.*
+    - public/
+    - scripts/
+    - transform/
+    - data/
+    - docs/
+    - Makefile
+    - README.md
+    - AGENTS.md
+    - .gitignore
+    - .github/workflows/
+    - vercel.json
+  outside_allowed_paths: none
+  product_code_files:
+    - web/
+    - scripts/export_marts.py
+    - Makefile
+    - vercel.json
+    - .github/workflows/dashboard.yml
+  data_project: true
+  data_generated: false
+  human_gate:
+    design_go: recorded_for_prior_package
+    owner_go: true
+    architecture_impacted: false
+    merge: owner_only
+    merged: false
+metrics:
+  source: web/src/data/dashboard.json
+  facts: data/marts parquet, gitignored
+  primary_metric: bank_connection_completion_rate
+  primary_population: applications with bank_connection_started
+  product_decision: null
+  sla_attainment: unshipped
+  pages:
+    - /
+    - /funnel
+    - /operations
+    - /experiment
+build:
+  command: make web-build
+  next: 16.3.5
+  react: 19.2.4
+  recharts: 3.10.1
+  result: static routes /, /funnel, /operations, /experiment
+  dbt: make dbt-build PASS=110 before export
+verify:
+  checks:
+    - id: local_pages
+      command: curl http://127.0.0.1:3000 and /funnel /operations /experiment
+      result: thesis, disclaimer, funnel, operations, and unselected decision frames present
+    - id: browser
+      result: >
+        Device filter changed started counts from 100000 to 61908 on mobile.
+        Week toggle changed the trend axis. Four pages, disclaimer, and
+        unselected Ship / Iterate / Do not ship frames checked in the browser.
+        Mobile width 390 showed the disclaimer without horizontal overflow.
+gaps:
+  - product_decision remains null. The page shows the three frames and does not select one.
+  - Guardrail margin is unset. No pass or fail flag.
+  - Decision and funding SLA attainment stay unshipped.
+  - Filters are one slice at a time. device_browser, underwriting_path, and risk_band are portfolio cuts.
+  - Ask LendFlow and a formal EDA notebook are out of this contract.
+  - Parquet facts stay gitignored. Vercel builds from the committed JSON snapshot.

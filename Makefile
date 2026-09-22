@@ -10,7 +10,7 @@ export LENDFLOW_EXPORT_ROOT := $(CURDIR)/data/marts
 export DO_NOT_TRACK := 1
 export DBT_SEND_ANONYMOUS_USAGE_STATS := false
 
-.PHONY: install generate check data dbt-build dbt-parse dbt-export marts dbt-checkpoint dbt-doctor pre-commit-install
+.PHONY: install generate check data dbt-build dbt-parse dbt-export marts dbt-checkpoint dbt-doctor pre-commit-install web-install web-build web-dev
 
 install:
 	python3 -m venv $(VENV)
@@ -51,3 +51,12 @@ pre-commit-install: dbt-parse
 
 dbt-doctor: dbt-parse
 	npx --yes dbt-doctor@0.3.4 transform --offline --full --preset default --lint --fail-on none --manifest target/manifest.json
+
+web-install:
+	npm install --prefix web
+
+web-build:
+	npm run build --prefix web
+
+web-dev:
+	npm run dev --prefix web
