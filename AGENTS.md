@@ -28,13 +28,13 @@ Write role ids. Do not write bot display names in this repository.
 
 | Field | Value |
 | --- | --- |
-| `task_id` | `TASK-LENDFLOW-DASHBOARD` |
+| `task_id` | `TASK-LENDFLOW-ASK` |
 | `graph_id` | `feature` |
-| Contract | [docs/tasks/TASK-LENDFLOW-DASHBOARD.yaml](docs/tasks/TASK-LENDFLOW-DASHBOARD.yaml) |
+| Contract | [docs/tasks/TASK-LENDFLOW-ASK.yaml](docs/tasks/TASK-LENDFLOW-ASK.yaml) |
 | `data_project` | `true` |
 | `architecture.impacted` | `false` |
 
-Owner GO is in force for this contract. `architecture.impacted` is false. The app reads the mart export. It does not add a warehouse, Ask LendFlow, or new marts.
+Owner GO is in force for this contract. `architecture.impacted` is false. Ask LendFlow is a deterministic catalog over the mart export already on main. It does not add a live model, a warehouse, or new marts.
 
 Allowed paths:
 
@@ -52,6 +52,8 @@ tailwind.config.*
 postcss.config.*
 public/
 scripts/
+lib/
+src/
 transform/
 data/
 docs/

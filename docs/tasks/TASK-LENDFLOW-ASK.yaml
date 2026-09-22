@@ -1,0 +1,68 @@
+version: "1.0-min"
+task_id: TASK-LENDFLOW-ASK
+objective: >
+  Add Ask LendFlow: a deterministic analyst chat over governed mart exports
+  (no live LLM). Answers must be reproducible from marts/metrics already in
+  the repo; refuse or deflect out-of-scope questions. Ship as part of the
+  Next.js app already on main (Phase 5 dashboard).
+context: >
+  Repo: nrohland/lendflow-fintech-analytics. Dashboard Phase 5 on main (PR #13).
+  Architecture Option A: mart export → Next.js. Human-gate: Ask = deterministic.
+  Thesis: Approval isn't the finish line. Funding is.
+  EN-only UI/copy. No real-lender names. Synthetic disclaimer visible.
+  Portfolio case study only.
+graph_id: feature
+owner: nrohland
+reviewer: independent-reviewer
+approvals:
+  create_draft_pr: true
+data_project: true
+architecture:
+  impacted: false
+scope:
+  allowed_paths:
+    - apps/
+    - web/
+    - frontend/
+    - package.json
+    - pnpm-lock.yaml
+    - yarn.lock
+    - package-lock.json
+    - next.config.*
+    - tsconfig.json
+    - tailwind.config.*
+    - postcss.config.*
+    - public/
+    - scripts/
+    - lib/
+    - src/
+    - transform/
+    - data/
+    - docs/
+    - Makefile
+    - README.md
+    - AGENTS.md
+    - .gitignore
+    - .github/workflows/
+    - vercel.json
+  forbidden:
+    - "**/.env"
+    - "**/secrets/**"
+  non_goals:
+    - Live LLM / API keys for model providers
+    - Cloud warehouse
+    - Naming any real lender
+    - Changing experiment primary metric definition
+    - Formal EDA notebook
+acceptance:
+  - Ask LendFlow UI reachable from the dashboard (dedicated page or panel)
+  - Deterministic Q&A grounded in mart exports / known metric catalog
+  - Clear handling for unsupported questions (no hallucinated numbers)
+  - Covers core product questions: funnel, funding, bank_connection experiment, guardrails
+  - EN-only copy; synthetic + unofficial disclaimer
+  - Local run + Vercel path documented if changed
+  - Draft PR; only nrohland merges
+constraints:
+  - Zero extra cloud cost (no paid LLM)
+  - 1 Task Contract = 1 draft PR
+  - No bot display names in repo

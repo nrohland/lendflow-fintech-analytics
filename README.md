@@ -28,7 +28,7 @@ The dashboard is a Next.js app in [web/](web/). How to refresh the mart export a
 Python → Parquet → DuckDB + dbt → mart export → Next.js
 ```
 
-DuckDB runs locally. There is no cloud warehouse. The dashboard and Ask LendFlow will read one exported metric layer. Ask LendFlow V1 is a curated question list, not a live model.
+DuckDB runs locally. There is no cloud warehouse. The dashboard and Ask LendFlow read one exported metric layer. Ask LendFlow V1 is a curated question list, not a live model.
 
 The primary experiment metric is `bank_connection_completion_rate`, among applications that start bank connection.
 
@@ -76,8 +76,10 @@ make web-install
 make web-dev
 ```
 
-Overview, Application Funnel, Operations, and Experiment. Ask LendFlow and a formal EDA notebook are later contracts.
+Overview, Application Funnel, Operations, Experiment, and Ask LendFlow at `/ask`. A formal EDA notebook is a later contract.
+
+Ask LendFlow matches a fixed question list to `product_metrics` and `fct_experiment_results`. It does not call a model provider. Local run and the Vercel path are in [docs/dashboard.md](docs/dashboard.md).
 
 ## Not built yet
 
-EDA and Ask LendFlow are later contracts.
+A formal EDA notebook is a later contract.
