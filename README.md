@@ -6,6 +6,8 @@ Product analytics for a synthetic auto-loan application. The question is where q
 
 **Unofficial portfolio case study. Not affiliated with any real lender. No proprietary data, systems, or internal metrics. The tables in `data/synthetic/` are 100% synthetic.**
 
+**Live demo:** [lendflow-fintech-analytics.vercel.app](https://lendflow-fintech-analytics.vercel.app)
+
 ## In this repository
 
 Phase 1 is the design package:
@@ -20,7 +22,7 @@ The diagram is also an [Archify HTML file](docs/diagrams/lendflow-stack.html). M
 
 [Northstar](https://ecommerce-profitability-analytics.vercel.app/) is the visual and interaction reference. This case study does not reuse that content.
 
-The dashboard is a Next.js app in [web/](web/). How to refresh the mart export and how to deploy on Vercel are in [docs/dashboard.md](docs/dashboard.md).
+The dashboard is a Next.js app in [web/](web/). **Live:** [lendflow-fintech-analytics.vercel.app](https://lendflow-fintech-analytics.vercel.app). How to refresh the mart export and how to deploy on Vercel are in [docs/dashboard.md](docs/dashboard.md).
 
 ## Decided stack
 
