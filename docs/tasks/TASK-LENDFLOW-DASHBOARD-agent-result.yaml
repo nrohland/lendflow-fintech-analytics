@@ -83,6 +83,19 @@ verify:
         Week toggle changed the trend axis. Four pages, disclaimer, and
         unselected Ship / Iterate / Do not ship frames checked in the browser.
         Mobile width 390 showed the disclaimer without horizontal overflow.
+    - id: draft_pr_open
+      result: pass
+      evidence: >
+        https://github.com/nrohland/lendflow-fintech-analytics/pull/13
+        is draft, open, base main, head feat/lendflow-dashboard. Not merged.
+draft_pr:
+  url: https://github.com/nrohland/lendflow-fintech-analytics/pull/13
+  number: 13
+  draft: true
+  state: open
+  merged: false
+  base: main
+  head: feat/lendflow-dashboard
 gaps:
   - product_decision remains null. The page shows the three frames and does not select one.
   - Guardrail margin is unset. No pass or fail flag.
