@@ -31,6 +31,9 @@ out/
 .vercel/
 *.tsbuildinfo
 next-env.d.ts
+# next dev writes these local hints. They are not product copy.
+web/AGENTS.md
+web/CLAUDE.md
 
 # Secrets. Do not commit these.
 .env
