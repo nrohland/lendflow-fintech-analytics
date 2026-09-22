@@ -28,27 +28,26 @@ Write role ids. Do not write bot display names in this repository.
 
 | Field | Value |
 | --- | --- |
-| `task_id` | `TASK-LENDFLOW-DBT-TOOLING-TRIAL` |
+| `task_id` | `TASK-LENDFLOW-DBT-QUALITY-GAPS` |
 | `graph_id` | `feature` |
-| Contract | [docs/tasks/TASK-LENDFLOW-DBT-TOOLING-TRIAL.yaml](docs/tasks/TASK-LENDFLOW-DBT-TOOLING-TRIAL.yaml) |
+| Contract | [docs/tasks/TASK-LENDFLOW-DBT-QUALITY-GAPS.yaml](docs/tasks/TASK-LENDFLOW-DBT-QUALITY-GAPS.yaml) |
 | `data_project` | `true` |
 | `architecture.impacted` | `false` |
 
-`data_project: true` still means EDA runs before UI copy. This contract is the dbt quality-tool trial. It does not add a dashboard, Ask LendFlow, or dbt marts.
+`data_project: true` still means EDA runs before UI copy. This contract fills the missing column descriptions and wires CI plus a usable pre-commit install. It does not add a dashboard, Ask LendFlow, or new marts. Osmosis stays on hold.
 
 Allowed paths:
 
 ```text
 transform/
-dbt/
+.github/workflows/
 .pre-commit-config.yaml
 packages.yml
 docs/
-specs/
 scripts/
-AGENTS.md
-README.md
 Makefile
+README.md
+AGENTS.md
 requirements.txt
 pyproject.toml
 .gitignore
@@ -62,7 +61,7 @@ Skill ids `dbt-reviewer` and `dbt-model-reviewer` are not loaded. They are not p
 
 `using-dbt-for-analytics-engineering` is a builder skill. On this repo the builder stays on local dbt Core and DuckDB.
 
-The trial evidence and the `make dbt-checkpoint` / `make dbt-doctor` commands are in [docs/dbt-tooling-trial.md](docs/dbt-tooling-trial.md).
+The trial evidence and the `make dbt-checkpoint` / `make dbt-doctor` commands are in [docs/dbt-tooling-trial.md](docs/dbt-tooling-trial.md). Column descriptions, `make pre-commit-install`, and CI are in [docs/dbt-quality.md](docs/dbt-quality.md). There is no `packages.yml`. No Hub package is required.
 
 Product docs and code comments are English. No secrets, no `.env`, no real applicant data.
 

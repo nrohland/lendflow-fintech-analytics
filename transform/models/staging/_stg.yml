@@ -10,6 +10,9 @@ models:
           - unique
           - not_null
       - name: created_at
+        description: >
+          When the person record was created. returning_user is true when
+          this is at least 30 days before the first in-window application.
         data_tests:
           - not_null
       - name: returning_user
@@ -21,10 +24,12 @@ models:
     description: Staged applications. One row per application.
     columns:
       - name: application_id
+        description: Surrogate key. One row per application.
         data_tests:
           - unique
           - not_null
       - name: applicant_id
+        description: Person who started this application.
         data_tests:
           - not_null
           - relationships:
@@ -32,6 +37,7 @@ models:
                 to: ref('stg_applicants')
                 field: applicant_id
       - name: started_at
+        description: When the application started. This is the start of the submit clock.
         data_tests:
           - not_null
       - name: application_status
@@ -62,6 +68,7 @@ models:
                   - auto
                   - manual
       - name: experiment_variant
+        description: bank_connection_clarity arm on the application. control or treatment.
         data_tests:
           - not_null
           - accepted_values:
@@ -74,10 +81,12 @@ models:
     description: Staged product events. One row per event.
     columns:
       - name: event_id
+        description: Surrogate key. One row per product event.
         data_tests:
           - unique
           - not_null
       - name: application_id
+        description: Application this event belongs to.
         data_tests:
           - not_null
           - relationships:
@@ -85,6 +94,7 @@ models:
                 to: ref('stg_applications')
                 field: application_id
       - name: applicant_id
+        description: Person on the event. Matches the application.
         data_tests:
           - not_null
           - relationships:
@@ -92,9 +102,11 @@ models:
                 to: ref('stg_applicants')
                 field: applicant_id
       - name: event_timestamp
+        description: When the event was recorded. Timestamps on one application increase.
         data_tests:
           - not_null
       - name: event_name
+        description: Product event name from the analytical spec. No extra names in this version.
         data_tests:
           - not_null
           - accepted_values:
@@ -124,6 +136,7 @@ models:
     description: One terminal decision per decided application. No second decision.
     columns:
       - name: application_id
+        description: Decided application. One terminal decision and no second decision.
         data_tests:
           - unique
           - not_null
@@ -132,6 +145,7 @@ models:
                 to: ref('stg_applications')
                 field: application_id
       - name: decision
+        description: Terminal outcome. approved, referred, or declined.
         data_tests:
           - not_null
           - accepted_values:
@@ -141,6 +155,7 @@ models:
                   - referred
                   - declined
       - name: decision_path
+        description: auto or manual. Matches the application underwriting_path once a decision exists.
         data_tests:
           - not_null
           - accepted_values:
@@ -149,6 +164,7 @@ models:
                   - auto
                   - manual
       - name: decision_timestamp
+        description: When the terminal decision was recorded.
         data_tests:
           - not_null
       - name: decision_duration_minutes
@@ -164,6 +180,7 @@ models:
     description: One row per approved application, funded or not.
     columns:
       - name: application_id
+        description: Approved application. A row exists only when the decision is approved.
         data_tests:
           - unique
           - not_null
@@ -172,6 +189,7 @@ models:
                 to: ref('stg_applications')
                 field: application_id
       - name: funding_status
+        description: funded or not_funded. Referred and declined applications are not in this table.
         data_tests:
           - not_null
           - accepted_values:
@@ -184,6 +202,7 @@ models:
     description: Assignment at application start for bank_connection_clarity.
     columns:
       - name: application_id
+        description: Application that received the assignment at start.
         data_tests:
           - not_null
           - relationships:
@@ -191,6 +210,7 @@ models:
                 to: ref('stg_applications')
                 field: application_id
       - name: experiment_name
+        description: Experiment identifier. This version assigns bank_connection_clarity only.
         data_tests:
           - not_null
           - accepted_values:
@@ -198,6 +218,7 @@ models:
                 values:
                   - bank_connection_clarity
       - name: variant
+        description: Assigned arm. control or treatment.
         data_tests:
           - not_null
           - accepted_values:
@@ -206,5 +227,6 @@ models:
                   - control
                   - treatment
       - name: assigned_at
+        description: When the arm was assigned. Equal to the application started_at.
         data_tests:
           - not_null

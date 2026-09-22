@@ -1,0 +1,55 @@
+version: "1.0-min"
+task_id: TASK-LENDFLOW-DBT-QUALITY-GAPS
+objective: >
+  Close gaps left by the dbt tooling trial: document undeclared/empty column
+  descriptions (~40), add CI that runs dbt parse/build (and checkpoint where
+  practical), and make pre-commit hooks actually usable (install path + committed
+  config that works after parse/build). Optionally add packages.yml only if needed
+  for docs/quality (keep thin).
+context: >
+  Repo: nrohland/lendflow-fintech-analytics.
+  Trial PR #9 (docs/dbt-tooling-trial.md): skill/doctor/checkpoint=trial, osmosis=hold.
+  Gaps called out: 40 columns without description; no CI; pre-commit not installed
+  as git hook because manifest gitignored until parse/build; no packages.yml.
+  EN-only; no real-lender names; zero extra cloud cost.
+graph_id: feature
+owner: nrohland
+reviewer: independent-reviewer
+approvals:
+  create_draft_pr: true
+data_project: true
+architecture:
+  impacted: false
+scope:
+  allowed_paths:
+    - transform/
+    - .github/workflows/
+    - .pre-commit-config.yaml
+    - packages.yml
+    - docs/
+    - scripts/
+    - Makefile
+    - README.md
+    - AGENTS.md
+    - requirements.txt
+    - pyproject.toml
+    - .gitignore
+  forbidden:
+    - "**/.env"
+    - "**/secrets/**"
+    - apps/**
+  non_goals:
+    - Forcing osmosis adopt if still not worth it
+    - Dashboard / Ask LendFlow
+    - Naming any real lender
+acceptance:
+  - Column descriptions filled for previously undeclared ~40 columns (or documented exceptions with reason)
+  - CI workflow on PRs: at least dbt parse + dbt build (DuckDB) green
+  - pre-commit: committed config + documented install; hooks run in CI and/or after local dbt parse as designed
+  - packages.yml only if a Hub package is required for the above; otherwise explicit none
+  - Update docs/dbt-tooling-trial.md or docs/dbt-quality.md with how-to (EN)
+  - Draft PR; only nrohland merges
+constraints:
+  - Thin diffs; free/OSS only
+  - 1 Task Contract = 1 draft PR
+  - May land after or alongside merge of #9

@@ -8,10 +8,12 @@ models:
       This is the grain the funnel and product_metrics roll up from.
     columns:
       - name: application_id
+        description: Application grain. Funnel rows and product_metrics roll up from this table.
         data_tests:
           - unique
           - not_null
       - name: applicant_id
+        description: Person on the application.
         data_tests:
           - not_null
           - relationships:
@@ -50,6 +52,7 @@ models:
       when the application did not enter the stage. It is not zero in that case.
     columns:
       - name: application_id
+        description: Application on this stage row. Grain is application and stage.
         data_tests:
           - not_null
           - relationships:
@@ -57,9 +60,11 @@ models:
                 to: ref('fct_applications')
                 field: application_id
       - name: stage_name
+        description: Stage in the display sequence, including the identity verification work stage.
         data_tests:
           - not_null
       - name: reached
+        description: True when the application entered this stage.
         data_tests:
           - not_null
 
@@ -67,6 +72,7 @@ models:
     description: One row per decided application. Referred and declined stop here.
     columns:
       - name: application_id
+        description: Decided application. One row.
         data_tests:
           - unique
           - not_null
@@ -75,6 +81,7 @@ models:
                 to: ref('fct_applications')
                 field: application_id
       - name: decision
+        description: Terminal outcome. approved, referred, or declined.
         data_tests:
           - not_null
           - accepted_values:
@@ -93,6 +100,7 @@ models:
       so this mart does not contain an attainment flag.
     columns:
       - name: application_id
+        description: Approved application, funded or not.
         data_tests:
           - unique
           - not_null
@@ -101,6 +109,7 @@ models:
                 to: ref('fct_applications')
                 field: application_id
       - name: funding_status
+        description: funded or not_funded.
         data_tests:
           - not_null
           - accepted_values:
@@ -120,10 +129,12 @@ models:
       alpha 0.05. It is not a ship decision. Guardrails have no pass or fail flag.
     columns:
       - name: metric_name
+        description: Experiment metric. One row per metric for bank_connection_clarity.
         data_tests:
           - unique
           - not_null
       - name: metric_role
+        description: primary, secondary, guardrail, or exploratory. Not a ship decision.
         data_tests:
           - not_null
           - accepted_values:
@@ -154,15 +165,19 @@ models:
       error_rate is null on stages with no failure event. It is not filled with zero.
     columns:
       - name: metric_name
+        description: Governed metric name. Formulas stay in the analytical spec.
         data_tests:
           - not_null
       - name: slice_name
+        description: Cut applied to the metric. overall is the uncut row.
         data_tests:
           - not_null
       - name: slice_value
+        description: Value of the cut. all when slice_name is overall.
         data_tests:
           - not_null
       - name: unit
+        description: count, proportion, minutes, or hours. A proportion is a rate in [0, 1].
         data_tests:
           - not_null
           - accepted_values:

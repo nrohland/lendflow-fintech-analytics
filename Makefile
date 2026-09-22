@@ -10,7 +10,7 @@ export LENDFLOW_EXPORT_ROOT := $(CURDIR)/data/marts
 export DO_NOT_TRACK := 1
 export DBT_SEND_ANONYMOUS_USAGE_STATS := false
 
-.PHONY: install generate check data dbt-build dbt-parse dbt-export marts dbt-checkpoint dbt-doctor
+.PHONY: install generate check data dbt-build dbt-parse dbt-export marts dbt-checkpoint dbt-doctor pre-commit-install
 
 install:
 	python3 -m venv $(VENV)
@@ -38,6 +38,16 @@ marts: dbt-build dbt-export
 
 dbt-checkpoint: dbt-parse
 	$(VENV)/bin/pre-commit run --all-files
+
+pre-commit-install: dbt-parse
+	@hooks_path="$$(git config --get core.hooksPath || true)"; \
+	if [ -n "$$hooks_path" ]; then \
+	  echo "core.hooksPath is $$hooks_path."; \
+	  echo "pre-commit will not install over a custom hooks path."; \
+	  echo "Run: make dbt-checkpoint"; \
+	  exit 1; \
+	fi
+	$(VENV)/bin/pre-commit install
 
 dbt-doctor: dbt-parse
 	npx --yes dbt-doctor@0.3.4 transform --offline --full --preset default --lint --fail-on none --manifest target/manifest.json

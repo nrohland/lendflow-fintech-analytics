@@ -1,6 +1,8 @@
 # dbt tooling trial
 
-Trial of four quality tools against the local dbt-duckdb project in `transform/`. Evidence was collected on 2026-09-21 from this repository, at dbt Core 1.12.5 and dbt-duckdb 1.11.0. No model SQL or YAML was rewritten.
+Trial of four quality tools against the local dbt-duckdb project in `transform/`. Evidence was collected on 2026-09-21 from this repository, at dbt Core 1.12.5 and dbt-duckdb 1.11.0. No model SQL or YAML was rewritten for the trial.
+
+Column descriptions, the column-description hook, the git-hook install, and CI landed later in [dbt-quality.md](dbt-quality.md). The counts in this note are the trial baseline. Osmosis stays on hold. That evidence has not changed.
 
 `packages.yml` was not added. None of the four tools is a dbt Hub package.
 
@@ -10,7 +12,7 @@ Trial of four quality tools against the local dbt-duckdb project in `transform/`
 | --- | --- | --- | --- | --- | --- | --- |
 | Agent skills `dbt-reviewer` / `dbt-model-reviewer` | Review grain, joins, tests, docs, materialization, and model logic | No repo install. `independent-reviewer` loads skill id `dbt-model-review` | Read the skill, then review the diff under `transform/models/` and `transform/tests/` | Checklist applied to all 15 models. Keys, joins, and singular tests hold. 18 of 58 declared columns have descriptions. Composite grains are singular tests. | trial | The literal ids are not in dbt-labs/dbt-agent-skills (`a8607fc02a67`, 2026-09-11). The checklist that matches the brief is `dbt-model-review`. It does not execute dbt. |
 | dbt-doctor 0.3.4 | Static scan for docs, tests, naming, and SQL style | `npx --yes dbt-doctor@0.3.4`. Node 22. | `make dbt-doctor` | Default preset, lint on, manifest loaded: 4 errors, 8 warnings, score 80. Strict preset: 511 findings, score 31. | trial | The default report is short enough to read. Two of the four errors are a shared-source heuristic. The scan is advisory. |
-| dbt-checkpoint v2.0.10 | pre-commit hooks for descriptions, properties files, `ref`/`source`, semicolons, and at least one test | `pre-commit==4.6.2` via `make install`. Hook repo pinned in `.pre-commit-config.yaml`. | `make dbt-checkpoint` | Six hooks passed on every model file. Blanking `stg_experiments` description failed the description hook after `dbt parse`. | trial | The passing hooks match rules this project already keeps. Column-completeness hooks would force a YAML rewrite, so they are not enabled. |
+| dbt-checkpoint v2.0.10 | pre-commit hooks for descriptions, properties files, `ref`/`source`, semicolons, and at least one test | `pre-commit==4.6.2` via `make install`. Hook repo pinned in `.pre-commit-config.yaml`. | `make dbt-checkpoint` | Six hooks passed on every model file. Blanking `stg_experiments` description failed the description hook after `dbt parse`. | trial | The passing hooks match rules this project already keeps. Column-completeness hooks would force a YAML rewrite, so they are not enabled in the trial. The quality follow-up enables `check-model-columns-have-desc` only. |
 | dbt-osmosis 1.5.0 | YAML layout, column-doc inheritance, doc coverage | Installed only in a throwaway venv with `dbt-duckdb==1.11.0`. Not added to `requirements.txt`. | `dbt-osmosis analyze docs` and `dbt-osmosis yaml document --dry-run` | `analyze docs` reported 0/58 columns documented. dbt's own manifest has descriptions on 18 of those 58. `describe read_parquet(...)` failed for every synthetic source. | hold | The coverage number is wrong on dbt Core 1.12.5, and source introspection does not understand this project's Parquet sources. Applying the YAML rewrite would be a large refactor on a bad reading. |
 
 ## How the reviewer loads skills
@@ -38,7 +40,7 @@ Grain is stated on the staging and intermediate models, and in [docs/dbt.md](dbt
 - `int_application_funnel` groups events by `application_id` and left-joins that pivot, so the join does not multiply applications.
 - `fct_applications` inner-joins applicants, durations, and assignments (one row per application) and left-joins decisions and funding.
 
-Every model has a description. Of the 58 columns declared in YAML, 18 have a description. Mart columns that a reader filters on, including `device_browser` and `started_week`, are still undescribed. Filling those descriptions is a later docs pass. This trial does not do it.
+Every model has a description. Of the 58 columns declared in YAML, 18 have a description. Mart columns that a reader filters on, including `device_browser` and `started_week`, are still undescribed at the time of this trial. Filling those descriptions is a later docs pass. This trial does not do it. That pass is [dbt-quality.md](dbt-quality.md).
 
 Materialization is already set in `transform/dbt_project.yml`: views for staging and intermediate, tables for marts. There is no incremental model. That fits a local build of 100,000 applications.
 
@@ -109,13 +111,13 @@ Enabled hooks, all of which passed on 2026-09-21:
 
 `check-model-has-tests` counts manifest children of type test, including singular tests. Every model has at least two. After `dbt parse`, clearing the `stg_experiments` description failed `check-model-has-description` on `transform/models/staging/stg_experiments.sql`. The description was restored and the project was parsed again.
 
-Hooks that were run in the docs and then left out:
+Hooks that were run in the trial and then left out:
 
-- `check-model-columns-have-desc` and `check-model-has-all-columns` fail while 40 of 58 declared columns have no description, and while warehouse columns are absent from YAML. That is a docs project, not a hook flip.
+- `check-model-columns-have-desc` and `check-model-has-all-columns` fail while 40 of 58 declared columns have no description, and while warehouse columns are absent from YAML. That is a docs project, not a hook flip in this trial. The quality follow-up enables `check-model-columns-have-desc` after those 40 descriptions are filled. `check-model-has-all-columns` stays off. It needs `catalog.json`, and the properties files still do not list every DuckDB column.
 - `check-source-has-freshness` and `check-source-has-loader` do not fit static Parquet.
 - `check-model-has-contract` would turn on contracts that this project does not use.
 
-`pre-commit install` is optional. The git hook is not installed by `make install`, because a clean clone has no manifest until parse or build.
+`pre-commit install` is optional in this trial. The git hook is not installed by `make install`, because a clean clone has no manifest until parse or build. The later install path is `make pre-commit-install` in [dbt-quality.md](dbt-quality.md). The committed config parses before the checkpoint hooks so the git hook can run after that manifest exists.
 
 ## dbt-osmosis
 
