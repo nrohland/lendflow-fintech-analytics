@@ -12,8 +12,7 @@ Pages:
 | `/funnel` | Where is the friction? | `product_metrics` step rows, plus portfolio cuts |
 | `/operations` | Where do underwriting and funding wait? | `product_metrics` |
 | `/experiment` | Did bank-connection clarity change completion? | `fct_experiment_results` |
-
-Ask LendFlow is a later contract.
+| `/ask` | Can an analyst ask the governed layer a fixed question? | `product_metrics` and `fct_experiment_results` |
 
 ## Where the numbers come from
 
@@ -65,7 +64,19 @@ Hobby is enough. The deploy builds static pages from the committed snapshot. It 
 4. Leave environment variables empty.
 5. Deploy.
 
-`web/vercel.json` sets the Next.js framework. The site is the four routes above.
+`web/vercel.json` sets the Next.js framework. The site is the five routes above, including `/ask`.
+
+No environment variables. Ask LendFlow does not call a model provider, so there is no provider key to set. The route is a static page plus client-side matching over the committed snapshot. Root Directory stays `web`. Build command stays `npm run build`.
+
+## Ask LendFlow
+
+`/ask` is linked from the shell nav. It answers a fixed catalog from the snapshot already imported by the dashboard. The same question returns the same answer. There is no live model.
+
+The catalog covers funnel drop-off, funding conversion by start month, manual-review decision time, the bank-connection experiment (completion among applications that start bank connection, plus guardrails), and the mobile × paid-search funnel. That last question is two published slices. The export has no device-by-channel row, so the page does not estimate the intersection.
+
+A question outside the catalog returns no figure. Read-only SQL on an answer is the select against `marts.product_metrics` or `marts.fct_experiment_results`. The experiment answers also show the compiled `fct_experiment_results` SQL stored on the snapshot. The page does not open DuckDB.
+
+The slice control on the other pages is hidden on `/ask`. Answers name the slice they read.
 
 ## What the experiment page will not fill in
 

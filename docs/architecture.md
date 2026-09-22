@@ -53,7 +53,7 @@ Python → Parquet → DuckDB + dbt → mart export → Next.js
 | DuckDB + dbt | Local engine and governed models. `dbt-duckdb`. Zero warehouse cost. |
 | Mart export | Frozen facts and metrics. Parquet for facts. A small JSON document for the UI. SQL text for Ask LendFlow sits with that document. |
 | Next.js | Portfolio app. Reads the export. Does not query a live warehouse. |
-| Dashboard | Overview, Application Funnel, Operations, Experiment. |
+| Dashboard | Overview, Application Funnel, Operations, Experiment, and Ask LendFlow at `/ask`. |
 | Ask LendFlow | V1 answers are deterministic and curated. Same metrics as the dashboard. Read-only SQL can be shown. A live LLM is out of V1. |
 
 EDA is mandatory before dashboard copy. `data_project: true` on the task contract schedules that work. It is not part of this design package.

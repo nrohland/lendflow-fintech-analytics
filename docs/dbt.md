@@ -139,4 +139,4 @@ make pre-commit-install
 - SLA attainment percents
 - A pass or fail mark on guardrails
 - Columns that name a segment or a period as the cause of a pattern
-- Ask LendFlow
+- An Ask LendFlow model. The `/ask` page reads `product_metrics` and `fct_experiment_results`.

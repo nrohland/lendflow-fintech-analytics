@@ -27,6 +27,7 @@ const NAV = [
   { href: "/funnel", label: "Application Funnel", index: "02" },
   { href: "/operations", label: "Operations", index: "03" },
   { href: "/experiment", label: "Experiment", index: "04" },
+  { href: "/ask", label: "Ask LendFlow", index: "05" },
 ];
 
 function isFilterSlice(value: string | null): value is FilterSlice {
@@ -72,7 +73,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     [slice, value],
   );
 
-  const showFilter = pathname !== "/experiment";
+  const showFilter = pathname !== "/experiment" && pathname !== "/ask";
   const values = slice === "overall" ? [] : sliceValues(slice);
 
   return (
@@ -145,8 +146,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </div>
           ) : (
             <p className="mx-auto max-w-6xl px-4 pb-3 text-sm text-muted sm:px-6">
-              Experiment rows are the assigned comparison in fct_experiment_results. Device, browser,
-              channel, and period filters apply on the other pages.
+              {pathname === "/ask"
+                ? "Ask reads product_metrics and fct_experiment_results. The slice control on the other pages is not applied here."
+                : "Experiment rows are the assigned comparison in fct_experiment_results. Device, browser, channel, and period filters apply on the other pages."}
             </p>
           )}
         </header>
