@@ -1,0 +1,182 @@
+version: "1.0"
+task_id: TASK-LENDFLOW-DBT-QUALITY-GAPS
+role: builder
+status: draft_pr_open
+summary: >
+  Filled the 40 empty descriptions on columns already declared in the model
+  properties files. Pull requests run dbt parse, dbt build, and dbt-checkpoint
+  on local DuckDB. The git hook parses before the checkpoint hooks.
+  check-model-has-all-columns stays off. There is no packages.yml.
+  Osmosis stays on hold. dbt build stayed green.
+repo: nrohland/lendflow-fintech-analytics
+base_sha: 68ca89c0a9da61f01171c50b1c0daa57f18e2de6
+isolate:
+  branch: feat/lendflow-dbt-quality-gaps
+  base: main
+  base_sha: 68ca89c0a9da61f01171c50b1c0daa57f18e2de6
+  worktree: /workspace
+  allowed_paths:
+    - transform/
+    - .github/workflows/
+    - .pre-commit-config.yaml
+    - packages.yml
+    - docs/
+    - scripts/
+    - Makefile
+    - README.md
+    - AGENTS.md
+    - requirements.txt
+    - pyproject.toml
+    - .gitignore
+  outside_allowed_paths: none
+  product_code_files:
+    - .github/workflows/dbt.yml
+    - .pre-commit-config.yaml
+    - Makefile
+    - transform/models/staging/_stg.yml
+    - transform/models/intermediate/_int.yml
+    - transform/models/marts/_marts.yml
+  data_project: true
+  data_generated: false
+  human_gate:
+    design_go: not_required
+    architecture_impacted: false
+    merge: owner_only
+    merged: false
+columns:
+  declared_before: 58
+  with_description_before: 18
+  empty_before: 40
+  filled: 40
+  declared_after: 58
+  with_description_after: 58
+  exceptions:
+    - id: undeclared_duckdb_columns
+      count: 212
+      reason: >
+        After dbt build the fifteen models expose 270 DuckDB columns.
+        58 are declared in YAML. The other 212 are not copied into the
+        properties files. check-model-has-all-columns needs catalog.json
+        and stays off.
+    - id: source_columns
+      count: 47
+      reason: >
+        The six Parquet files have 47 columns. sources.yml describes each
+        table and lists no columns. Column meaning stays in
+        docs/data-generation.md and specs/analytical-spec.md.
+        check-source-columns-have-desc stays off.
+packages_yml: none
+osmosis: hold
+build:
+  engine: duckdb
+  dbt_duckdb: 1.11.0
+  dbt_core: 1.12.5
+  duckdb: 1.4.4
+  project: transform/
+  profile: transform/profiles.yml
+  command: make dbt-build
+  models_changed: false
+verify:
+  checks:
+    - id: column_descriptions
+      result: pass
+      evidence: >
+        40 empty descriptions filled. Manifest after parse: 58 columns,
+        58 non-empty descriptions, 0 empty.
+    - id: dbt_build
+      result: pass
+      evidence: >
+        dbt 1.12.5 and dbt-duckdb 1.11.0. make dbt-build finished
+        PASS=110 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=110.
+        Same total as the tooling trial. Model SQL was not changed.
+    - id: dbt_checkpoint
+      result: pass
+      evidence: >
+        pre-commit 4.6.2, dbt-checkpoint v2.0.10.
+        make dbt-checkpoint parsed, then dbt parse, check-model-has-description,
+        check-model-columns-have-desc, check-model-has-properties-file,
+        check-script-semicolon, check-script-has-no-table-name,
+        check-model-has-tests, and check-source-table-has-description passed.
+        Clearing stg_experiments.assigned_at and re-parsing failed
+        check-model-columns-have-desc. The description was restored and the
+        hook passed again.
+    - id: pre_commit_install
+      result: pass
+      evidence: >
+        make pre-commit-install parses, then runs pre-commit install when
+        Git uses .git/hooks. In this environment core.hooksPath is set, so
+        the target exits 1 and prints the dbt-checkpoint command. That is
+        the documented fallback. CI runs make dbt-checkpoint and does not
+        install a git hook. The first hook in .pre-commit-config.yaml is
+        make dbt-parse.
+    - id: ci
+      result: pass
+      evidence: >
+        .github/workflows/dbt.yml on pull_request and push to main.
+        GitHub Actions run 35669929569, job dbt / parse, build, checkpoint,
+        success. make dbt-parse, make dbt-build PASS=110 WARN=0 ERROR=0
+        SKIP=0 NO-OP=0 REUSED=0 TOTAL=110, and check-model-columns-have-desc
+        passed. https://github.com/nrohland/lendflow-fintech-analytics/actions/runs/35669929569
+    - id: packages_yml_absent
+      result: pass
+      evidence: >
+        No packages.yml. Documented in docs/dbt-quality.md. No Hub package
+        is required. dbt-checkpoint is pre-commit rev v2.0.10. dbt-doctor
+        is npm dbt-doctor@0.3.4 and is not a CI gate.
+    - id: osmosis_hold
+      result: pass
+      evidence: >
+        Not installed. Trial evidence on dbt Core 1.12.5 is unchanged.
+        docs/dbt-quality.md says do not run dbt-osmosis yaml document.
+    - id: no_dashboard
+      result: pass
+      evidence: no apps/ tree and no Ask LendFlow UI
+    - id: no_real_lender_names
+      result: pass
+      evidence: no new-file match for a real lender name
+    - id: no_bot_display_names
+      result: pass
+      evidence: role ids only
+    - id: architecture_untouched
+      result: pass
+      evidence: docs/architecture.md and docs/adr were not modified. architecture.impacted is false.
+    - id: draft_pr_open
+      result: pass
+      evidence: >
+        https://github.com/nrohland/lendflow-fintech-analytics/pull/11
+        is draft, open, base main, head feat/lendflow-dbt-quality-gaps. Not merged.
+evidence:
+  yaml_columns:
+    declared: 58
+    with_description: 58
+    filled_this_contract: 40
+  duckdb_columns:
+    models: 15
+    total: 270
+    undeclared_in_yaml: 212
+  source_parquet_columns: 47
+  dbt: "PASS=110 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=110"
+  ci_run: https://github.com/nrohland/lendflow-fintech-analytics/actions/runs/35669929569
+  python: "3.12.3"
+  packages:
+    dbt_core: 1.12.5
+    dbt_duckdb: 1.11.0
+    duckdb: 1.4.4
+    pre_commit: 4.6.2
+    dbt_checkpoint: v2.0.10
+draft_pr:
+  url: https://github.com/nrohland/lendflow-fintech-analytics/pull/11
+  number: 11
+  draft: true
+  state: open
+  merged: false
+  base: main
+  head: feat/lendflow-dbt-quality-gaps
+gaps:
+  - 212 DuckDB columns are still absent from the properties files. check-model-has-all-columns stays off.
+  - 47 Parquet source columns are not listed in sources.yml.
+  - dbt-doctor stays local and advisory. rejoining-upstream-concepts still flags fct_applications and product_metrics.
+  - make pre-commit-install exits when core.hooksPath is set. Use make dbt-checkpoint, which is what CI runs.
+  - dbt-osmosis stays on hold.
+  - Decision SLA, funding SLA, and guardrail margins are unchanged from TASK-LENDFLOW-DBT.
+  - EDA, the dashboard, and Ask LendFlow remain later contracts.
