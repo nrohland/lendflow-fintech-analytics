@@ -20,6 +20,8 @@ The diagram is also an [Archify HTML file](docs/diagrams/lendflow-stack.html). M
 
 [Northstar](https://ecommerce-profitability-analytics.vercel.app/) is the visual and interaction reference. This case study does not reuse that content.
 
+The dashboard is a Next.js app in [web/](web/). How to refresh the mart export and how to deploy on Vercel are in [docs/dashboard.md](docs/dashboard.md).
+
 ## Decided stack
 
 ```text
@@ -53,7 +55,7 @@ make dbt-build
 make marts
 ```
 
-`make marts` rebuilds the models and writes `data/marts/`. That directory is gitignored. The export is the publish step. The dashboard does not query a live database.
+`make marts` rebuilds the models, writes gitignored files under `data/marts/`, and refreshes `web/src/data/dashboard.json`. The dashboard imports that snapshot. It does not query a live database.
 
 Quality checks from the tooling trial:
 
@@ -66,6 +68,16 @@ What each command does, and which tools were left unwired, is in [docs/dbt-tooli
 
 `product_metrics` is the metric table. The primary experiment metric remains `bank_connection_completion_rate` among applications that start bank connection. The marts do not label a segment, a period, or a ship decision. EDA still has to read them.
 
+## Dashboard
+
+```bash
+make marts
+make web-install
+make web-dev
+```
+
+Overview, Application Funnel, Operations, and Experiment. Ask LendFlow and a formal EDA notebook are later contracts.
+
 ## Not built yet
 
-EDA, the dashboard, and Ask LendFlow are later contracts.
+EDA and Ask LendFlow are later contracts.

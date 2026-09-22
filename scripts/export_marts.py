@@ -1,7 +1,8 @@
-"""Export dbt marts for a later Next.js app.
+"""Export dbt marts for the Next.js dashboard.
 
 Facts are Parquet. product_metrics and the experiment result are also JSON.
-Compiled model SQL is stored beside them. Run `make dbt-build` first.
+Compiled model SQL is stored beside them. A slimmer snapshot is written to
+web/src/data/dashboard.json for the app to import. Run `make dbt-build` first.
 """
 
 from __future__ import annotations
@@ -15,6 +16,9 @@ import duckdb
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DUCKDB_PATH = Path(os.environ.get("LENDFLOW_DUCKDB", REPO_ROOT / "transform" / "target" / "lendflow.duckdb"))
 EXPORT_ROOT = Path(os.environ.get("LENDFLOW_EXPORT_ROOT", REPO_ROOT / "data" / "marts"))
+DASHBOARD_JSON = Path(
+    os.environ.get("LENDFLOW_DASHBOARD_JSON", REPO_ROOT / "web" / "src" / "data" / "dashboard.json")
+)
 COMPILED_MARTS = REPO_ROOT / "transform" / "target" / "compiled" / "lendflow" / "models" / "marts"
 SOURCE_MANIFEST = REPO_ROOT / "data" / "synthetic" / "manifest.json"
 
@@ -52,8 +56,27 @@ def main() -> None:
             )
             row_counts[table] = connection.execute(f"SELECT count(*) FROM marts.{table}").fetchone()[0]
 
-        product_metrics = _records(connection, "SELECT * FROM marts.product_metrics ORDER BY metric_name, stage_name, slice_name, slice_value")
-        experiment_results = _records(connection, "SELECT * FROM marts.fct_experiment_results ORDER BY metric_name")
+        product_metrics = _records(
+            connection,
+            "SELECT * FROM marts.product_metrics ORDER BY metric_name, stage_name, slice_name, slice_value",
+        )
+        experiment_results = _records(
+            connection, "SELECT * FROM marts.fct_experiment_results ORDER BY metric_name"
+        )
+        stages = _records(
+            connection,
+            """
+            select
+                stage_order,
+                stage_name,
+                stage_kind,
+                next_stage_name,
+                failure_event_name
+            from marts.fct_application_funnel
+            group by 1, 2, 3, 4, 5
+            order by stage_order
+            """,
+        )
     finally:
         connection.close()
 
@@ -67,14 +90,47 @@ def main() -> None:
         "product_decision": None,
         "source_manifest": source_manifest,
         "row_counts": row_counts,
+        "stages": stages,
         "product_metrics": product_metrics,
         "experiment_results": experiment_results,
         "sql": {name: _compiled_sql(name) for name in SQL_MODELS},
     }
     (EXPORT_ROOT / "metrics.json").write_text(json.dumps(document, indent=2, default=_json_default) + "\n")
+    _write_dashboard_snapshot(document, source_manifest)
     print(f"wrote {EXPORT_ROOT}")
+    print(f"wrote {DASHBOARD_JSON}")
     for table, count in row_counts.items():
         print(f"{table}={count}")
+
+
+def _write_dashboard_snapshot(document: dict, source_manifest: dict | None) -> None:
+    """App import. Parquet and the full metrics.json stay under data/marts/."""
+    source = None
+    if source_manifest:
+        source = {
+            "generator_version": source_manifest.get("generator_version"),
+            "seed": source_manifest.get("seed"),
+            "n_applications": source_manifest.get("n_applications"),
+            "window_start": source_manifest.get("window_start"),
+            "window_end_exclusive": source_manifest.get("window_end_exclusive"),
+            "experiment_name": source_manifest.get("experiment_name"),
+        }
+    snapshot = {
+        "export_version": document["export_version"],
+        "engine": document["engine"],
+        "primary_metric": document["primary_metric"],
+        "primary_population": document["primary_population"],
+        "sla_attainment": document["sla_attainment"],
+        "product_decision": document["product_decision"],
+        "source": source,
+        "row_counts": document["row_counts"],
+        "stages": document["stages"],
+        "product_metrics": document["product_metrics"],
+        "experiment_results": document["experiment_results"],
+        "experiment_sql": document["sql"]["fct_experiment_results"],
+    }
+    DASHBOARD_JSON.parent.mkdir(parents=True, exist_ok=True)
+    DASHBOARD_JSON.write_text(json.dumps(snapshot, separators=(",", ":"), default=_json_default) + "\n")
 
 
 def _records(connection: duckdb.DuckDBPyConnection, query: str) -> list[dict]:

@@ -28,29 +28,39 @@ Write role ids. Do not write bot display names in this repository.
 
 | Field | Value |
 | --- | --- |
-| `task_id` | `TASK-LENDFLOW-DBT-QUALITY-GAPS` |
+| `task_id` | `TASK-LENDFLOW-DASHBOARD` |
 | `graph_id` | `feature` |
-| Contract | [docs/tasks/TASK-LENDFLOW-DBT-QUALITY-GAPS.yaml](docs/tasks/TASK-LENDFLOW-DBT-QUALITY-GAPS.yaml) |
+| Contract | [docs/tasks/TASK-LENDFLOW-DASHBOARD.yaml](docs/tasks/TASK-LENDFLOW-DASHBOARD.yaml) |
 | `data_project` | `true` |
 | `architecture.impacted` | `false` |
 
-`data_project: true` still means EDA runs before UI copy. This contract fills the missing column descriptions and wires CI plus a usable pre-commit install. It does not add a dashboard, Ask LendFlow, or new marts. Osmosis stays on hold.
+Owner GO is in force for this contract. `architecture.impacted` is false. The app reads the mart export. It does not add a warehouse, Ask LendFlow, or new marts.
 
 Allowed paths:
 
 ```text
-transform/
-.github/workflows/
-.pre-commit-config.yaml
-packages.yml
-docs/
+apps/
+web/
+frontend/
+package.json
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+next.config.*
+tsconfig.json
+tailwind.config.*
+postcss.config.*
+public/
 scripts/
+transform/
+data/
+docs/
 Makefile
 README.md
 AGENTS.md
-requirements.txt
-pyproject.toml
 .gitignore
+.github/workflows/
+vercel.json
 ```
 
 ## Reviewer skills for dbt changes

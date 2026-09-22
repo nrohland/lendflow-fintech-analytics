@@ -1,0 +1,67 @@
+version: "1.0-min"
+task_id: TASK-LENDFLOW-DASHBOARD
+objective: >
+  Build the LendFlow Next.js dashboard (Vercel-ready) reading governed mart
+  exports from dbt: Overview, Application Funnel, Operations, Experiment.
+  Northstar UX patterns from ecommerce-profitability-analytics (do not clone
+  content). Ask LendFlow is OUT of this contract (Phase 6).
+context: >
+  Repo: nrohland/lendflow-fintech-analytics. Data + dbt + quality on main.
+  Architecture Option A: mart export → Next.js. Charts: Recharts.
+  Thesis: Approval isn't the finish line. Funding is.
+  Experiment primary: bank_connection_completion among apps that START bank connection.
+  EN-only UI/copy. No real-lender names. Synthetic disclaimer visible.
+  Fintech-inspired palette OK; no trademarked logos.
+graph_id: feature
+owner: nrohland
+reviewer: independent-reviewer
+approvals:
+  create_draft_pr: true
+data_project: true
+architecture:
+  impacted: false
+scope:
+  allowed_paths:
+    - apps/
+    - web/
+    - frontend/
+    - package.json
+    - pnpm-lock.yaml
+    - yarn.lock
+    - package-lock.json
+    - next.config.*
+    - tsconfig.json
+    - tailwind.config.*
+    - postcss.config.*
+    - public/
+    - scripts/
+    - transform/
+    - data/
+    - docs/
+    - Makefile
+    - README.md
+    - AGENTS.md
+    - .gitignore
+    - .github/workflows/
+    - vercel.json
+  forbidden:
+    - "**/.env"
+    - "**/secrets/**"
+  non_goals:
+    - Ask LendFlow chatbot (Phase 6)
+    - Live LLM
+    - Cloud warehouse
+    - Naming any real lender
+    - Formal EDA notebook
+acceptance:
+  - Four pages/sections: Overview, Application Funnel, Operations, Experiment
+  - Reads from governed mart exports (not ad-hoc invented metrics)
+  - KPI cards + funnel + ops + experiment (hypothesis, uplift, CI/significance, guardrails, ship/iterate/kill)
+  - Segmentation filters where specified in analytical-spec (device/browser/channel/period as practical for V1)
+  - Synthetic + unofficial disclaimer in UI
+  - Local run docs + Vercel deploy path documented (EN)
+  - Draft PR; only nrohland merges
+constraints:
+  - Zero extra cloud cost path (Vercel hobby OK)
+  - 1 Task Contract = 1 draft PR
+  - No bot display names in repo

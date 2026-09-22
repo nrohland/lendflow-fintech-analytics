@@ -26,13 +26,13 @@ export LENDFLOW_DUCKDB="$PWD/transform/target/lendflow.duckdb"
 
 ## Export for Next.js
 
-The dashboard is a later contract. It should read this export, not a live database.
+The dashboard in [web/](../web/) reads this export. It does not query a live database. Local run and the Vercel path are in [dashboard.md](dashboard.md).
 
 ```bash
 make marts
 ```
 
-`make marts` is `dbt build` and then `scripts/export_marts.py`. The script writes `data/marts/`, which is gitignored, so a fresh build is the publish step.
+`make marts` is `dbt build` and then `scripts/export_marts.py`. The script writes `data/marts/`, which is gitignored, and `web/src/data/dashboard.json`, which the app imports and which is committed.
 
 ```text
 data/marts/fct_applications.parquet
@@ -44,7 +44,7 @@ data/marts/product_metrics.parquet
 data/marts/metrics.json
 ```
 
-`metrics.json` holds `product_metrics`, `fct_experiment_results`, row counts, the source manifest, and the compiled SQL for the six marts. `product_decision` is null. This layer does not choose Ship, Iterate, or Do not ship.
+`metrics.json` holds `product_metrics`, `fct_experiment_results`, the stage catalog, row counts, the source manifest, and the compiled SQL for the six marts. `product_decision` is null. This layer does not choose Ship, Iterate, or Do not ship. `dashboard.json` is the same metric rows plus the experiment SQL, without the other compiled models, so the Next.js build can ship without DuckDB.
 
 ## Layout
 
@@ -139,4 +139,4 @@ make pre-commit-install
 - SLA attainment percents
 - A pass or fail mark on guardrails
 - Columns that name a segment or a period as the cause of a pattern
-- The Next.js app and Ask LendFlow
+- Ask LendFlow
