@@ -1,0 +1,127 @@
+version: "1.0"
+task_id: TASK-LENDFLOW-ASK
+role: builder
+status: draft_pr_open
+summary: >
+  Ask LendFlow is a /ask page on the existing Next.js dashboard. A fixed
+  catalog reads web/src/data/dashboard.json. The same question returns the
+  same answer. Questions outside the catalog return no figures. There is
+  no live model and no provider key. make web-build completed on Next.js
+  16.3.5 and includes the static /ask route.
+repo: nrohland/lendflow-fintech-analytics
+base_sha: 34639bc9e3a009d12802c2283b2d367056c740dd
+isolate:
+  branch: feat/lendflow-ask
+  base: main
+  base_sha: 34639bc9e3a009d12802c2283b2d367056c740dd
+  worktree: /workspace
+  allowed_paths:
+    - apps/
+    - web/
+    - frontend/
+    - package.json
+    - pnpm-lock.yaml
+    - yarn.lock
+    - package-lock.json
+    - next.config.*
+    - tsconfig.json
+    - tailwind.config.*
+    - postcss.config.*
+    - public/
+    - scripts/
+    - lib/
+    - src/
+    - transform/
+    - data/
+    - docs/
+    - Makefile
+    - README.md
+    - AGENTS.md
+    - .gitignore
+    - .github/workflows/
+    - vercel.json
+  outside_allowed_paths: none
+  product_code_files:
+    - web/src/lib/ask.ts
+    - web/src/app/ask/page.tsx
+    - web/src/components/shell.tsx
+  data_project: true
+  data_generated: false
+  human_gate:
+    design_go: recorded_for_prior_package
+    owner_go: true
+    architecture_impacted: false
+    merge: owner_only
+    merged: false
+grounding:
+  source: web/src/data/dashboard.json
+  tables:
+    - product_metrics
+    - fct_experiment_results
+  primary_metric: bank_connection_completion_rate
+  primary_population: applications with bank_connection_started
+  product_decision: null
+  sla_attainment: unshipped
+  live_model: false
+  pages:
+    - /ask
+catalog:
+  - id: dropoff
+    question: Where do applicants drop off most?
+  - id: longest_underwriting
+    question: Which segment has the longest underwriting time?
+  - id: funding_decline
+    question: Why did funding conversion decline?
+  - id: manual_review
+    question: How does manual review affect decision time?
+  - id: experiment
+    question: Did the bank-connection experiment improve completion?
+  - id: guardrails
+    question: What did the guardrails do?
+  - id: device_channel
+    question: Show the funnel for mobile applicants from paid search.
+  - id: grain
+    question: What is the bank connection completion denominator?
+build:
+  command: make web-build
+  next: 16.3.5
+  result: static routes /, /funnel, /operations, /experiment, /ask
+verify:
+  checks:
+    - id: catalog
+      result: >
+        Eight suggested questions return answered. A second call is identical.
+        Weather, a forecast, an unrecognized name, and mobile firefox (no
+        device_browser row) return refused with no digits.
+    - id: browser
+      result: >
+        /ask shows the synthetic disclaimer and the five-item nav. The
+        experiment answer states the population is applications with
+        bank_connection_started, control 74.1% and treatment 85.7%, guardrails,
+        product_decision null, and read-only SQL. Guardrails name approval,
+        identity verification failure, and median time to submit, with no pass
+        or fail flag. Mobile and paid search are shown as separate slices.
+        "What is the weather today?" is refused with no figure. Overview still
+        shows the thesis and the slice filter. Width 390 kept the disclaimer
+        and nav usable.
+    - id: draft_pr_open
+      result: pass
+      evidence: >
+        https://github.com/nrohland/lendflow-fintech-analytics/pull/15
+        is draft, open, base main, head feat/lendflow-ask. Not merged.
+draft_pr:
+  url: https://github.com/nrohland/lendflow-fintech-analytics/pull/15
+  number: 15
+  draft: true
+  state: open
+  merged: false
+  base: main
+  head: feat/lendflow-ask
+gaps:
+  - product_decision remains null. Ship, Iterate, and Do not ship stay unselected.
+  - Guardrail margin is unset. No pass or fail flag.
+  - Decision and funding SLA attainment stay unshipped.
+  - device_type and acquisition_channel are not crossed. Mobile from paid search is two slices.
+  - Wording outside the catalog is refused, including cuts the token list does not know.
+  - A formal EDA notebook is still a later contract.
+  - Parquet facts stay gitignored. Vercel builds from the committed JSON snapshot.
