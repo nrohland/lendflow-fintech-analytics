@@ -18,7 +18,7 @@ test("refuses questions outside the published catalog", () => {
 test("does not invent a device by channel intersection", () => {
   const answer = answerQuestion("Show the funnel for mobile applicants from paid search.");
   assert.equal(answer.status, "answered");
-  assert.match(answer.paragraphs.join(" "), /separate slices/i);
+  assert.match(answer.paragraphs.join(" "), /Device and Channel separate/i);
   assert.match(answer.paragraphs.join(" "), /Neither figure is the intersection/i);
 });
 

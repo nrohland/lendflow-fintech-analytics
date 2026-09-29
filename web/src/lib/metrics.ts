@@ -109,6 +109,37 @@ export function labelMetric(name: string): string {
   return METRIC_LABELS[name] ?? titleCase(name);
 }
 
+const PUBLIC_TERMS: Record<string, string> = {
+  ...Object.fromEntries(Object.entries(METRIC_LABELS).map(([key, label]) => [key, label.toLowerCase()])),
+  ...Object.fromEntries(Object.entries(STAGE_LABELS).map(([key, label]) => [key, label.toLowerCase()])),
+  product_metrics: "published metrics",
+  fct_experiment_results: "experiment results",
+  product_decision: "product decision",
+  sla_attainment: "SLA attainment",
+  null_rejected_at_alpha: "statistical significance at 5%",
+  started_month: "start month",
+  started_week: "start week",
+  device_browser: "device and browser",
+  device_type: "device",
+  acquisition_channel: "acquisition channel",
+  underwriting_path: "underwriting path",
+  risk_band: "risk band",
+  paid_search: "paid search",
+  wald_95: "Wald 95% interval",
+  normal_approx_median_se_95: "normal approximation, 95% interval",
+};
+
+/** Convert warehouse identifiers in narrative copy; raw SQL remains available separately. */
+export function displayText(value: string): string {
+  return value
+    .replace(/\b[a-z]+(?:_[a-z0-9]+)+\b/g, (term) => PUBLIC_TERMS[term] ?? term.replaceAll("_", " "))
+    .replaceAll("applications with application started", "applications that started")
+    .replaceAll("applications with bank connection started", "applications that started bank connection")
+    .replaceAll("applications with identity verification started", "applications that started identity verification")
+    .replaceAll("applications with application submitted", "submitted applications")
+    .replaceAll("applications assigned at application started", "applications assigned when they started");
+}
+
 export function labelSlice(slice: string): string {
   if (slice === "overall") return "Portfolio";
   if (slice === "device_type") return "Device";
@@ -281,13 +312,4 @@ export function primaryExperiment(): ExperimentRow {
     throw new Error(`Snapshot is missing ${snapshot.primary_metric}`);
   }
   return row;
-}
-
-export function sourceLine(): string {
-  const source = snapshot.source;
-  if (!source?.n_applications || !source.window_start || !source.window_end_exclusive) {
-    return "Synthetic export";
-  }
-  const count = new Intl.NumberFormat("en-US").format(source.n_applications);
-  return `Synthetic · seed ${source.seed} · ${count} applications · ${source.window_start.slice(0, 10)} to ${source.window_end_exclusive.slice(0, 10)} (end exclusive)`;
 }

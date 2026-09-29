@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { labelSlice, labelValue, sliceValues, snapshot, sourceLine } from "@/lib/metrics";
+import { labelSlice, labelValue, sliceValues } from "@/lib/metrics";
 import { FILTER_SLICES, type FilterSlice } from "@/lib/types";
 
 type SliceState = {
@@ -142,27 +142,19 @@ export function Shell({ children }: { children: React.ReactNode }) {
                   </select>
                 </label>
               ) : null}
+              <p className="w-full pt-1 text-xs leading-5 text-muted">
+                Choose one view at a time. Headline metrics change; sections marked “Portfolio” remain fixed.
+              </p>
             </div>
           ) : (
             <p className="mx-auto max-w-7xl px-4 pb-3 text-xs text-muted sm:px-8">
               {pathname === "/ask"
-                ? "Ask reads product_metrics and fct_experiment_results. The slice control on the other pages is not applied here."
-                : "Experiment rows are the assigned comparison in fct_experiment_results. Device, browser, channel, and period filters apply on the other pages."}
+                ? "Ask answers a fixed set of questions. Select a suggested question to begin."
+                : "This experiment compares assigned groups. Page filters do not apply to this result."}
             </p>
           )}
         </header>
         <main id="main-content" tabIndex={-1} className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-14">{children}</main>
-        <footer className="border-t border-line">
-          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-8 text-xs text-muted sm:px-8">
-            <p>{sourceLine()}</p>
-            <p>
-              Figures are read from the governed export: product_metrics and fct_experiment_results.
-              product_decision is {snapshot.product_decision ?? "null"}. SLA attainment is{" "}
-              {snapshot.sla_attainment}.
-            </p>
-            <p>Synthetic data. Unofficial portfolio case study. Not affiliated with any real lender.</p>
-          </div>
-        </footer>
       </div>
     </SliceContext.Provider>
   );

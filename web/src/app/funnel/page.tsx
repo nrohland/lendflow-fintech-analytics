@@ -94,7 +94,7 @@ export default function FunnelPage() {
         </div>
         <div className="mt-3">
           <Note>
-            error_rate is blank on stages with no failure event. A blank cell is undefined, and it is not
+            Error rate is blank on stages with no recorded failure event. A blank cell is undefined, and it is not
             zero. Identity verification started is a work stage between bank connected and identity verified.
           </Note>
         </div>
@@ -130,7 +130,7 @@ export default function FunnelPage() {
       <Section
         kicker="Portfolio cut"
         title="Bank connection by device and browser"
-        lede="device_browser is device_type and browser joined with a pipe. Completion and failure incidence both use applications that start bank connection. This cut is the portfolio. It does not cross with the page filter."
+        lede="A portfolio comparison by device and browser. Completion and failure incidence both use applications that start bank connection. This view stays fixed when you change the page filter."
       >
         <div className="data-panel p-4">
           <div className="mb-2 flex gap-3 text-sm">
@@ -144,7 +144,7 @@ export default function FunnelPage() {
       <Section
         kicker="Portfolio cut"
         title="Channel start volume and completion"
-        lede="applications_started and application_completion_rate on acquisition_channel. Start volume and completion are separate metrics."
+        lede="Start volume and application completion by acquisition channel. This portfolio comparison stays fixed when you change the page filter."
       >
         <div className="data-panel p-4">
           <ChannelChart data={channels} active={slice === "acquisition_channel" ? value : null} />

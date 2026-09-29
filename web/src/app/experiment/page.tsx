@@ -10,7 +10,7 @@ import {
   formatPercent,
   formatSignedPercent,
 } from "@/lib/format";
-import { experimentRows, labelMetric, primaryExperiment, snapshot } from "@/lib/metrics";
+import { displayText, experimentRows, labelMetric, primaryExperiment, snapshot } from "@/lib/metrics";
 import type { ExperimentRow } from "@/lib/types";
 
 export default function ExperimentPage() {
@@ -46,8 +46,8 @@ export default function ExperimentPage() {
         Did bank-connection clarity change completion?
       </h1>
       <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
-        {snapshot.source?.experiment_name ?? "bank_connection_clarity"} compares treatment with control.
-        The primary metric is {snapshot.primary_metric}. The population is {snapshot.primary_population}.
+        The bank connection clarity test compares a shorter explanation with the current experience.
+        Its primary measure is {labelMetric(snapshot.primary_metric).toLowerCase()} among {displayText(snapshot.primary_population)}.
       </p>
 
       <Section kicker="Hypothesis" title="Shorter explanation at bank connection">
@@ -90,14 +90,14 @@ export default function ExperimentPage() {
           <Stat label="Never started, treatment" value={formatCount(primary.n_assigned_outside_population_treatment)} />
         </dl>
         <p className="mt-3 text-xs text-muted">
-          Population: {primary.population}. Interval method: {primary.interval_method}. Alpha {primary.alpha}.
+          Population: {displayText(primary.population)}. Interval: {displayText(primary.interval_method)}. Significance level: {primary.alpha}.
         </p>
       </Section>
 
       <Section
         kicker="All experiment metrics"
         title="Difference and 95% interval"
-        lede="Proportion metrics are in percentage points, treatment minus control. The whisker is the Wald interval from fct_experiment_results. The median guardrail uses minutes and sits in the table."
+        lede="Differences compare treatment with control. Percentage measures use points; the median time measure uses minutes. Bars show 95% intervals."
       >
         <div className="data-panel p-4">
           <DifferenceChart data={intervals} />
@@ -121,7 +121,7 @@ export default function ExperimentPage() {
                 <tr key={row.metric_name} className="border-t border-line">
                   <td className="px-3 py-2">
                     <div>{labelMetric(row.metric_name)}</div>
-                    <div className="text-xs text-muted">{row.population}</div>
+                    <div className="text-xs text-muted">{displayText(row.population)}</div>
                   </td>
                   <td className="px-3 py-2 capitalize text-muted">{row.metric_role}</td>
                   <td className="num px-3 py-2 text-right">{formatMetricValue(row, row.control_value)}</td>
@@ -161,7 +161,7 @@ export default function ExperimentPage() {
       <Section
         kicker="Decision frames"
         title="Ship, iterate, or do not ship"
-        lede="The mart publishes product_decision as null. These frames are the vocabulary for a later recommendation. This page leaves every frame unselected while that field is null."
+        lede="No product decision has been recorded. The primary result is promising, but launch criteria still need guardrail limits."
       >
         <div className="grid gap-3 lg:grid-cols-3">
           <Frame
@@ -180,8 +180,8 @@ export default function ExperimentPage() {
               rejectedGuardrails.length
                 ? `${rejectedGuardrails.map((row) => labelMetric(row.metric_name)).join(", ")} ${
                     rejectedGuardrails.length === 1 ? "has" : "have"
-                  } null_rejected_at_alpha true. Iterate would weigh that movement once a margin exists. The margin is unset.`
-                : "No guardrail has null_rejected_at_alpha true. The margin is unset."
+                  } a statistically significant difference. Iterate would weigh that movement once a guardrail limit exists.`
+                : "No guardrail has a statistically significant difference. The margin is unset."
             }
           />
           <Frame
@@ -196,13 +196,12 @@ export default function ExperimentPage() {
         </div>
         <div className="mt-3">
           <Note>
-            product_decision is {selected ?? "null"}. null_rejected_at_alpha is the alpha {primary.alpha}{" "}
-            comparison. It is a statistical result. The export does not store a ship label.
+            {selected ? `Recorded decision: ${selected}.` : "No product decision has been recorded."} Statistical significance at {primary.alpha} is not a launch recommendation.
           </Note>
         </div>
       </Section>
 
-      <Section kicker="Definition" title="Compiled SQL for fct_experiment_results">
+      <Section kicker="Technical detail" title="How the experiment was calculated">
         <details className="data-panel p-4">
           <summary className="cursor-pointer text-sm text-ink">Read-only SQL from the dbt compile</summary>
           <pre className="mt-3 overflow-x-auto text-xs leading-5 text-muted">{snapshot.experiment_sql}</pre>

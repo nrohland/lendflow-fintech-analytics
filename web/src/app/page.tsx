@@ -1,32 +1,28 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { Kpi, Note, Section } from "@/components/bits";
+import { Kpi, Section } from "@/components/bits";
 import { TrendChart } from "@/components/charts";
 import { useSlice } from "@/components/shell";
-import { formatMinutes, formatPercent } from "@/lib/format";
+import { formatPercent, formatSignedPp } from "@/lib/format";
 import {
   FUNDING_PATH,
-  approvalFundingReading,
-  bankConnectionPairs,
   funnelStep,
   labelSlice,
   labelValue,
   metric,
-  pathRows,
   periodSeries,
+  primaryExperiment,
 } from "@/lib/metrics";
 
 export default function OverviewPage() {
   const { slice, value } = useSlice();
   const [grain, setGrain] = useState<"started_month" | "started_week">("started_month");
   const series = periodSeries(grain);
-  const reading = approvalFundingReading();
-  const pairs = bankConnectionPairs();
-  const lowest = pairs[0];
-  const paths = pathRows();
-  const auto = paths.find((row) => row.value === "auto");
-  const manual = paths.find((row) => row.value === "manual");
+  const bankDrop = metric("step_drop_off_rate", "overall", "all", "bank_connection_started");
+  const fundedAfterApproval = metric("approved_to_funded_rate", "overall", "all");
+  const experiment = primaryExperiment();
   const steps = FUNDING_PATH.map((name) => funnelStep(name, slice, value)).filter(
     (step) => step.reached != null,
   );
@@ -56,6 +52,46 @@ export default function OverviewPage() {
         </div>
       </div>
 
+      <section className="mt-8" aria-labelledby="key-findings">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.13em] text-pine">The readout</p>
+            <h2 id="key-findings" className="mt-2 font-display text-3xl text-ink sm:text-4xl">Three findings to take away</h2>
+          </div>
+          <p className="text-xs text-muted">Portfolio-wide · These findings stay fixed when you change filters</p>
+        </div>
+        <div className="mt-5 grid gap-3 lg:grid-cols-3">
+          <Insight
+            number="01"
+            label="A major handoff"
+            value={formatPercent(bankDrop?.metric_value)}
+            body={`${formatCount(bankDrop?.numerator ?? null)} of ${formatCount(bankDrop?.denominator ?? null)} applications that start bank connection do not complete it. This is a clear place to investigate friction.`}
+            href="/funnel"
+            action="Explore the funnel"
+          />
+          <Insight
+            number="02"
+            label="Approval to funding"
+            value={formatPercent(fundedAfterApproval?.metric_value)}
+            body={`${formatCount(fundedAfterApproval?.numerator ?? null)} of ${formatCount(fundedAfterApproval?.denominator ?? null)} approved applications reach funding. Approval alone misses this downstream gap.`}
+            href="/operations"
+            action="See what happens after approval"
+          />
+          <Insight
+            number="03"
+            label="Experiment signal"
+            value={formatSignedPp(experiment.absolute_difference_pp)}
+            body={`${formatPercent(experiment.control_value)} in control versus ${formatPercent(experiment.treatment_value)} in treatment among bank connection starters. Guardrail limits are still undefined.`}
+            href="/experiment"
+            action="Review the experiment"
+          />
+        </div>
+        <p className="mt-4 rounded-lg border-l-[3px] border-[#60b975] bg-pine-soft px-4 py-3 text-sm leading-6 text-ink">
+          <strong>Where to focus:</strong> investigate the bank connection handoff, then trace losses after approval.
+          The test result is promising, but guardrail limits are needed before a launch decision.
+        </p>
+      </section>
+
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Kpi label="Applications started" row={metric("applications_started", slice, value)} />
         <Kpi label="Application completion" row={metric("application_completion_rate", slice, value)} />
@@ -69,10 +105,24 @@ export default function OverviewPage() {
         <Kpi label="Median time to decision" row={metric("median_time_to_decision", slice, value)} />
       </div>
 
+      <section className="mt-14" aria-labelledby="explore-title">
+        <p className="text-xs font-bold uppercase tracking-[0.13em] text-pine">Explore the story</p>
+        <h2 id="explore-title" className="mt-2 font-display text-3xl text-ink sm:text-4xl">Where to go next</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+          Use the filters above to change the headline metrics. Sections marked “Portfolio” stay fixed so you can compare them with the wider picture.
+        </p>
+        <nav className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Explore the analysis">
+          <GuideLink href="/funnel" number="02" title="Funnel" description="Find where applicants leave." />
+          <GuideLink href="/operations" number="03" title="Operations" description="Compare decision and funding times." />
+          <GuideLink href="/experiment" number="04" title="Experiment" description="Read the test result and guardrails." />
+          <GuideLink href="/ask" number="05" title="Ask" description="Try a guided question about the data." />
+        </nav>
+      </section>
+
       <Section
         kicker="Portfolio trend"
         title="Approval rate and funding rate"
-        lede="started_month and started_week are portfolio cuts. A device, browser, or channel filter changes the cards above. It does not cross with this trend, because the mart has no combined slice."
+        lede="This portfolio trend is shown by month or week. The page filters above change the headline cards, but do not combine with this trend."
       >
         <div className="data-panel p-4">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
@@ -84,6 +134,7 @@ export default function OverviewPage() {
                   key={item}
                   type="button"
                   onClick={() => setGrain(item)}
+                  aria-pressed={grain === item}
                   className={`rounded-full px-3 py-1 ${
                     grain === item ? "bg-ink text-paper" : "bg-paper text-muted"
                   }`}
@@ -100,7 +151,7 @@ export default function OverviewPage() {
       <Section
         kicker="Funding path"
         title="Reached volume on the selected slice"
-        lede="Counts are the step denominator in product_metrics, or the matching count metric when a stage has no next step. Identity verification started sits inside bank connected to identity verified and is on the funnel page."
+        lede="The number of applications reaching each stage for the selected filter. The funnel page shows conversion and drop-off between stages."
       >
         <ol className="grid gap-2">
           {steps.map((step) => (
@@ -118,60 +169,6 @@ export default function OverviewPage() {
         </ol>
       </Section>
 
-      <Section
-        kicker="From the export"
-        title="Three readings of published slices"
-        lede="These descriptive comparisons quote product_metrics. They do not establish causes or a shipping decision."
-      >
-        <div className="grid gap-3 lg:grid-cols-3">
-          <article className="data-panel p-4">
-            <h3 className="font-display text-xl text-ink">Approval and funding by month</h3>
-            {reading ? (
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Approval rate peaks in {reading.peak.label} at {formatPercent(reading.peak.approval)}. Funding
-                rate that month is {formatPercent(reading.peak.funding)}. Approved to funded is{" "}
-                {formatPercent(reading.peak.approvedToFunded)}. In {reading.first.label}, approval rate is{" "}
-                {formatPercent(reading.first.approval)}, funding rate is {formatPercent(reading.first.funding)},
-                and approved to funded is {formatPercent(reading.first.approvedToFunded)}.
-              </p>
-            ) : (
-              <p className="mt-3 text-sm text-muted">The month slice has no paired rates.</p>
-            )}
-          </article>
-          <article className="data-panel p-4">
-            <h3 className="font-display text-xl text-ink">Bank connection by device and browser</h3>
-            {lowest ? (
-              <p className="mt-3 text-sm leading-6 text-muted">
-                The lowest bank_connection_completion_rate on the device_browser slice is{" "}
-                {formatPercent(lowest.completion)} for {lowest.label}. Denominator {formatCount(lowest.denominator)}{" "}
-                applications that start bank connection. Failure incidence on that slice is{" "}
-                {formatPercent(lowest.failure)}.
-              </p>
-            ) : (
-              <p className="mt-3 text-sm text-muted">No device_browser rows.</p>
-            )}
-          </article>
-          <article className="data-panel p-4">
-            <h3 className="font-display text-xl text-ink">Decision time by path</h3>
-            {auto && manual ? (
-              <p className="mt-3 text-sm leading-6 text-muted">
-                median_time_to_decision is {formatMinutes(auto.medianDecision)} on the auto path (
-                {formatCount(auto.decided)} decided) and {formatMinutes(manual.medianDecision)} on the manual path
-                ({formatCount(manual.decided)} decided). The underwriting_path slice is the portfolio of decided
-                applications.
-              </p>
-            ) : (
-              <p className="mt-3 text-sm text-muted">No underwriting_path rows.</p>
-            )}
-          </article>
-        </div>
-        <div className="mt-3">
-          <Note>
-            Decision SLA attainment and funding SLA attainment are unshipped. The limits are unset, so this
-            page leaves those percents blank.
-          </Note>
-        </div>
-      </Section>
     </article>
   );
 }
@@ -179,4 +176,41 @@ export default function OverviewPage() {
 function formatCount(value: number | null): string {
   if (value == null) return "—";
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+}
+
+function Insight({ number, label, value, body, href, action }: {
+  number: string;
+  label: string;
+  value: string;
+  body: string;
+  href: string;
+  action: string;
+}) {
+  return (
+    <article className="data-panel flex h-full flex-col p-5">
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-pine">{number} / {label}</p>
+      <p className="num mt-4 text-4xl font-semibold tracking-tight text-ink">{value}</p>
+      <p className="mt-3 flex-1 text-sm leading-6 text-muted">{body}</p>
+      <Link href={href} className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-semibold text-pine hover:underline">
+        {action} <span aria-hidden="true">→</span>
+      </Link>
+    </article>
+  );
+}
+
+function GuideLink({ href, number, title, description }: {
+  href: string;
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link href={href} className="data-panel group block p-4 transition-colors hover:border-pine">
+      <span className="text-xs font-bold text-pine">{number}</span>
+      <span className="mt-2 flex items-center justify-between font-semibold text-ink">
+        {title} <span className="text-pine transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+      </span>
+      <span className="mt-1 block text-xs leading-5 text-muted">{description}</span>
+    </Link>
+  );
 }

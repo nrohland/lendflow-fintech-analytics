@@ -1,5 +1,6 @@
 import type { MetricRow } from "@/lib/types";
 import { formatCount, formatMetric } from "@/lib/format";
+import { displayText } from "@/lib/metrics";
 
 export function Section({
   kicker,
@@ -42,7 +43,7 @@ export function Kpi({
       <p className="num mt-3 font-sans text-3xl font-semibold tracking-[-0.045em] text-ink">
         {row ? formatMetric(row.metric_value, row.unit) : "—"}
       </p>
-      <p className="mt-2 text-xs leading-5 text-muted">{hint ?? row?.population ?? "No row for this slice"}</p>
+      <p className="mt-2 text-xs leading-5 text-muted">{displayText(hint ?? row?.population ?? "No row for this slice")}</p>
       {fraction ? <p className="num mt-1 text-xs text-ink">{fraction}</p> : null}
     </article>
   );

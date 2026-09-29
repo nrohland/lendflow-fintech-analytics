@@ -3,7 +3,7 @@
 import { Kpi, Note, Section } from "@/components/bits";
 import { useSlice } from "@/components/shell";
 import { formatCount, formatMetric, formatMinutes, formatPercent } from "@/lib/format";
-import { labelSlice, labelValue, metric, pathRows, riskRows, snapshot } from "@/lib/metrics";
+import { labelSlice, labelValue, metric, pathRows, riskRows } from "@/lib/metrics";
 
 export default function OperationsPage() {
   const { slice, value } = useSlice();
@@ -31,16 +31,15 @@ export default function OperationsPage() {
         </div>
         <div className="mt-3">
           <Note>
-            Decision SLA attainment is {snapshot.sla_attainment}. The limit is unset, so this page shows
-            median_time_to_decision and leaves attainment blank.
+            A decision service target has not been set, so attainment is blank. The median decision time remains available.
           </Note>
         </div>
       </Section>
 
       <Section
-        kicker="Portfolio cut · underwriting_path"
+        kicker="Portfolio comparison · underwriting path"
         title="Auto and manual"
-        lede="median_time_to_decision is minutes from submitted_at to the decision, among decided applications on that path."
+        lede="Median time from submission to decision, among decided applications on each path. This comparison stays fixed when you change the page filter."
       >
         <div className="overflow-x-auto data-panel">
           <table className="data-table min-w-full text-left text-sm">
@@ -84,16 +83,15 @@ export default function OperationsPage() {
         </div>
         <div className="mt-3">
           <Note>
-            Funding SLA attainment is {snapshot.sla_attainment}. The clock is median_funding_duration_hours.
-            The limit is unset, so attainment stays blank.
+            A funding service target has not been set, so attainment is blank. The contract-to-funding median remains available.
           </Note>
         </div>
       </Section>
 
       <Section
-        kicker="Portfolio cut · risk_band"
+        kicker="Portfolio comparison · risk band"
         title="Approval beside post-approval funding"
-        lede="risk_band is a synthetic segment on decided applications. approval_rate and approved_to_funded_rate are separate rows."
+        lede="Approval and post-approval funding for synthetic risk groups among decided applications. This comparison stays fixed when you change the page filter."
       >
         <div className="overflow-x-auto data-panel">
           <table className="data-table min-w-full text-left text-sm">
