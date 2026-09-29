@@ -40,7 +40,7 @@ export default function ExperimentPage() {
   }));
 
   return (
-    <article>
+    <article className="page-content">
       <p className="text-xs uppercase tracking-[0.16em] text-copper">04 — Experiment</p>
       <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">
         Did bank-connection clarity change completion?
@@ -62,7 +62,7 @@ export default function ExperimentPage() {
 
       <Section kicker="Primary" title={labelMetric(primary.metric_name)}>
         <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-2xl border border-line bg-card p-4">
+          <div className="data-panel p-4">
             <VariantChart data={variants} />
           </div>
           <dl className="grid content-start gap-3 sm:grid-cols-2">
@@ -99,11 +99,11 @@ export default function ExperimentPage() {
         title="Difference and 95% interval"
         lede="Proportion metrics are in percentage points, treatment minus control. The whisker is the Wald interval from fct_experiment_results. The median guardrail uses minutes and sits in the table."
       >
-        <div className="rounded-2xl border border-line bg-card p-4">
+        <div className="data-panel p-4">
           <DifferenceChart data={intervals} />
         </div>
-        <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-          <table className="min-w-full text-left text-sm">
+        <div className="mt-4 overflow-x-auto data-panel">
+          <table className="data-table min-w-full text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-muted">
               <tr>
                 <th className="px-3 py-3 font-medium">Metric</th>
@@ -203,7 +203,7 @@ export default function ExperimentPage() {
       </Section>
 
       <Section kicker="Definition" title="Compiled SQL for fct_experiment_results">
-        <details className="rounded-2xl border border-line bg-card p-4">
+        <details className="data-panel p-4">
           <summary className="cursor-pointer text-sm text-ink">Read-only SQL from the dbt compile</summary>
           <pre className="mt-3 overflow-x-auto text-xs leading-5 text-muted">{snapshot.experiment_sql}</pre>
         </details>
@@ -214,7 +214,7 @@ export default function ExperimentPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-line bg-card px-3 py-3">
+    <div className="data-panel px-3 py-3">
       <dt className="text-[11px] uppercase tracking-wide text-muted">{label}</dt>
       <dd className="num mt-1 text-lg text-ink">{value}</dd>
     </div>

@@ -17,7 +17,7 @@ export default function AskPage() {
   }
 
   return (
-    <article>
+    <article className="page-content">
       <p className="text-xs uppercase tracking-[0.16em] text-copper">05 — Ask LendFlow</p>
       <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">Ask the governed export</h1>
       <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
@@ -96,8 +96,8 @@ function AnswerView({ question, answer }: { question: string; answer: AskAnswer 
         )}
       </div>
       {answer.table ? (
-        <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-          <table className="min-w-full text-left text-sm">
+        <div className="mt-4 overflow-x-auto data-panel">
+          <table className="data-table min-w-full text-left text-sm">
             <caption className="px-3 py-3 text-left text-xs leading-5 text-muted">{answer.table.caption}</caption>
             <thead className="text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -123,7 +123,7 @@ function AnswerView({ question, answer }: { question: string; answer: AskAnswer 
         </div>
       ) : null}
       {answer.sql ? (
-        <div className="mt-4 rounded-2xl border border-line bg-card p-4">
+        <div className="mt-4 data-panel p-4">
           <h3 className="text-sm text-ink">Read-only SQL</h3>
           <p className="mt-1 text-xs leading-5 text-muted">
             This select reads the mart. The page uses the same rows from the committed export. It does not open a

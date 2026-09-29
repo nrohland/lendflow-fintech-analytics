@@ -13,7 +13,7 @@ export default function OperationsPage() {
   const bands = riskRows();
 
   return (
-    <article>
+    <article className="page-content">
       <p className="text-xs uppercase tracking-[0.16em] text-copper">03 — Operations</p>
       <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">Where do underwriting and funding wait?</h1>
       <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
@@ -42,8 +42,8 @@ export default function OperationsPage() {
         title="Auto and manual"
         lede="median_time_to_decision is minutes from submitted_at to the decision, among decided applications on that path."
       >
-        <div className="overflow-x-auto rounded-2xl border border-line bg-card">
-          <table className="min-w-full text-left text-sm">
+        <div className="overflow-x-auto data-panel">
+          <table className="data-table min-w-full text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-muted">
               <tr>
                 <th className="px-3 py-3 font-medium">Path</th>
@@ -95,8 +95,8 @@ export default function OperationsPage() {
         title="Approval beside post-approval funding"
         lede="risk_band is a synthetic segment on decided applications. approval_rate and approved_to_funded_rate are separate rows."
       >
-        <div className="overflow-x-auto rounded-2xl border border-line bg-card">
-          <table className="min-w-full text-left text-sm">
+        <div className="overflow-x-auto data-panel">
+          <table className="data-table min-w-full text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-muted">
               <tr>
                 <th className="px-3 py-3 font-medium">Risk band</th>
@@ -131,7 +131,7 @@ function PathBars({
 }) {
   const max = Math.max(...rows.map((row) => row.medianDecision ?? 0), 1);
   return (
-    <div className="mt-4 rounded-2xl border border-line bg-card p-4">
+    <div className="mt-4 data-panel p-4">
       <p className="text-sm text-muted">Median decision time, same minute scale</p>
       <ul className="mt-3 grid gap-3">
         {rows.map((row) => (

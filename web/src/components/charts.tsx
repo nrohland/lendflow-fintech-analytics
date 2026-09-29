@@ -18,14 +18,14 @@ import {
 import { formatCount, formatPercent } from "@/lib/format";
 
 const tooltipStyle = {
-  background: "#fbf8f2",
-  border: "1px solid #e0d8cb",
+  background: "#ffffff",
+  border: "1px solid #dce4e1",
   borderRadius: 10,
   fontSize: 12,
-  color: "#1c1915",
+  color: "#242a34",
 };
 
-const axisTick = { fill: "#5f584e", fontSize: 12 };
+const axisTick = { fill: "#596473", fontSize: 12 };
 
 export function TrendChart({
   data,
@@ -38,7 +38,7 @@ export function TrendChart({
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke="#e0d8cb" vertical={false} />
+          <CartesianGrid stroke="#dce4e1" vertical={false} />
           <XAxis dataKey="label" tick={axisTick} axisLine={false} tickLine={false} interval="preserveStartEnd" />
           <YAxis
             tick={axisTick}
@@ -51,9 +51,9 @@ export function TrendChart({
             contentStyle={tooltipStyle}
             formatter={(value, name) => [formatPercent(Number(value)), name === "approval" ? "Approval rate" : "Funding rate"]}
           />
-          {activeLabel ? <ReferenceLine x={activeLabel} stroke="#8d4e2e" strokeDasharray="3 3" /> : null}
-          <Line type="monotone" dataKey="approval" name="approval" stroke="#8d4e2e" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="funding" name="funding" stroke="#1e5c45" strokeWidth={2} dot={false} />
+          {activeLabel ? <ReferenceLine x={activeLabel} stroke="#53627b" strokeDasharray="3 3" /> : null}
+          <Line type="monotone" dataKey="approval" name="approval" stroke="#53627b" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="funding" name="funding" stroke="#226f54" strokeWidth={2} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -65,11 +65,11 @@ export function VolumeChart({ data }: { data: { label: string; reached: number }
     <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-          <CartesianGrid stroke="#e0d8cb" horizontal={false} />
+          <CartesianGrid stroke="#dce4e1" horizontal={false} />
           <XAxis type="number" tick={axisTick} axisLine={false} tickLine={false} tickFormatter={(value: number) => formatCount(value)} />
           <YAxis type="category" dataKey="label" width={168} tick={axisTick} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} formatter={(value) => [formatCount(Number(value)), "Reached"]} />
-          <Bar dataKey="reached" fill="#1e5c45" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="reached" fill="#226f54" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -81,7 +81,7 @@ export function DropOffChart({ data }: { data: { label: string; dropOff: number 
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-          <CartesianGrid stroke="#e0d8cb" horizontal={false} />
+          <CartesianGrid stroke="#dce4e1" horizontal={false} />
           <XAxis
             type="number"
             tick={axisTick}
@@ -91,7 +91,7 @@ export function DropOffChart({ data }: { data: { label: string; dropOff: number 
           />
           <YAxis type="category" dataKey="label" width={168} tick={axisTick} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} formatter={(value) => [formatPercent(Number(value)), "Drop-off"]} />
-          <Bar dataKey="dropOff" fill="#8d4e2e" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="dropOff" fill="#53627b" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -109,7 +109,7 @@ export function ChannelChart({
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke="#e0d8cb" vertical={false} />
+          <CartesianGrid stroke="#dce4e1" vertical={false} />
           <XAxis dataKey="label" tick={axisTick} axisLine={false} tickLine={false} interval={0} />
           <YAxis yAxisId="count" tick={axisTick} axisLine={false} tickLine={false} width={48} />
           <YAxis
@@ -131,10 +131,10 @@ export function ChannelChart({
           />
           <Bar yAxisId="count" dataKey="started" radius={[4, 4, 0, 0]}>
             {data.map((entry) => (
-              <Cell key={entry.value} fill={entry.value === active ? "#1e5c45" : "#d7ebe2"} />
+              <Cell key={entry.value} fill={entry.value === active ? "#226f54" : "#d9f0de"} />
             ))}
           </Bar>
-          <Line yAxisId="rate" type="monotone" dataKey="completion" stroke="#8d4e2e" strokeWidth={2} dot={{ r: 3 }} />
+          <Line yAxisId="rate" type="monotone" dataKey="completion" stroke="#53627b" strokeWidth={2} dot={{ r: 3 }} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -150,7 +150,7 @@ export function PairChart({
     <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-          <CartesianGrid stroke="#e0d8cb" horizontal={false} />
+          <CartesianGrid stroke="#dce4e1" horizontal={false} />
           <XAxis
             type="number"
             tick={axisTick}
@@ -166,8 +166,8 @@ export function PairChart({
               name === "completion" ? "Completion" : "Failure incidence",
             ]}
           />
-          <Bar dataKey="completion" fill="#1e5c45" radius={[0, 4, 4, 0]} />
-          <Bar dataKey="failure" fill="#8d4e2e" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="completion" fill="#226f54" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="failure" fill="#53627b" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -179,7 +179,7 @@ export function VariantChart({ data }: { data: { label: string; rate: number }[]
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke="#e0d8cb" vertical={false} />
+          <CartesianGrid stroke="#dce4e1" vertical={false} />
           <XAxis dataKey="label" tick={axisTick} axisLine={false} tickLine={false} />
           <YAxis
             tick={axisTick}
@@ -192,7 +192,7 @@ export function VariantChart({ data }: { data: { label: string; rate: number }[]
           <Tooltip contentStyle={tooltipStyle} formatter={(value) => [formatPercent(Number(value)), "Completion"]} />
           <Bar dataKey="rate" radius={[4, 4, 0, 0]}>
             {data.map((entry) => (
-              <Cell key={entry.label} fill={entry.label === "Treatment" ? "#1e5c45" : "#c8c0b2"} />
+              <Cell key={entry.label} fill={entry.label === "Treatment" ? "#226f54" : "#b8c5c6"} />
             ))}
           </Bar>
         </BarChart>
@@ -210,16 +210,16 @@ export function DifferenceChart({
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 24, left: 8, bottom: 4 }}>
-          <CartesianGrid stroke="#e0d8cb" horizontal={false} />
+          <CartesianGrid stroke="#dce4e1" horizontal={false} />
           <XAxis type="number" tick={axisTick} axisLine={false} tickLine={false} unit=" pp" />
           <YAxis type="category" dataKey="label" width={180} tick={axisTick} axisLine={false} tickLine={false} />
-          <ReferenceLine x={0} stroke="#1c1915" />
+          <ReferenceLine x={0} stroke="#242a34" />
           <Tooltip
             contentStyle={tooltipStyle}
             formatter={(value) => [`${Number(value).toFixed(1)} pp`, "Treatment − control"]}
           />
-          <Bar dataKey="diff" fill="#1e5c45" radius={[0, 4, 4, 0]}>
-            <ErrorBar dataKey="error" stroke="#1c1915" strokeWidth={1.5} width={6} direction="x" />
+          <Bar dataKey="diff" fill="#226f54" radius={[0, 4, 4, 0]}>
+            <ErrorBar dataKey="error" stroke="#242a34" strokeWidth={1.5} width={6} direction="x" />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

@@ -35,7 +35,7 @@ export default function FunnelPage() {
     slice === "overall" ? "the portfolio" : `${labelSlice(slice).toLowerCase()} · ${labelValue(slice, value)}`;
 
   return (
-    <article>
+    <article className="page-content">
       <p className="text-xs uppercase tracking-[0.16em] text-copper">02 — Application funnel</p>
       <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">Where is the friction?</h1>
       <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
@@ -45,20 +45,20 @@ export default function FunnelPage() {
       </p>
 
       <Section kicker="Volume" title="Reached counts along the funding path">
-        <div className="rounded-2xl border border-line bg-card p-4">
+        <div className="data-panel p-4">
           <VolumeChart data={volume} />
         </div>
       </Section>
 
       <Section kicker="Drop-off" title="Share that does not reach the next stage">
-        <div className="rounded-2xl border border-line bg-card p-4">
+        <div className="data-panel p-4">
           <DropOffChart data={drops} />
         </div>
       </Section>
 
       <Section kicker="Scorecard" title="One row per stage">
-        <div className="overflow-x-auto rounded-2xl border border-line bg-card">
-          <table className="min-w-full text-left text-sm">
+        <div className="overflow-x-auto data-panel">
+          <table className="data-table min-w-full text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-muted">
               <tr>
                 <th className="px-3 py-3 font-medium">Stage</th>
@@ -116,7 +116,7 @@ export default function FunnelPage() {
               value,
             );
             return (
-              <article key={name} className="rounded-2xl border border-line bg-card p-4">
+              <article key={name} className="data-panel p-4">
                 <p className="text-xs uppercase tracking-wide text-muted">{name}</p>
                 <p className="num mt-2 font-display text-3xl">{formatMetric(rate?.metric_value, "proportion")}</p>
                 <p className="num mt-1 text-sm text-muted">{formatCount(count?.metric_value ?? null)} applications</p>
@@ -132,7 +132,7 @@ export default function FunnelPage() {
         title="Bank connection by device and browser"
         lede="device_browser is device_type and browser joined with a pipe. Completion and failure incidence both use applications that start bank connection. This cut is the portfolio. It does not cross with the page filter."
       >
-        <div className="rounded-2xl border border-line bg-card p-4">
+        <div className="data-panel p-4">
           <div className="mb-2 flex gap-3 text-sm">
             <span className="text-pine">Completion</span>
             <span className="text-copper">Failure incidence</span>
@@ -146,7 +146,7 @@ export default function FunnelPage() {
         title="Channel start volume and completion"
         lede="applications_started and application_completion_rate on acquisition_channel. Start volume and completion are separate metrics."
       >
-        <div className="rounded-2xl border border-line bg-card p-4">
+        <div className="data-panel p-4">
           <ChannelChart data={channels} active={slice === "acquisition_channel" ? value : null} />
         </div>
       </Section>

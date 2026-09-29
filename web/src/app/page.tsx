@@ -35,15 +35,26 @@ export default function OverviewPage() {
     slice === grain ? series.find((point) => point.value === value)?.label ?? null : null;
 
   return (
-    <article>
-      <p className="text-xs uppercase tracking-[0.16em] text-copper">01 — Overview</p>
-      <h1 className="mt-2 max-w-3xl font-display text-4xl leading-tight tracking-tight text-ink sm:text-5xl">
-        Approval isn&apos;t the finish line. Funding is.
-      </h1>
-      <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-        Are we funding the applications we approve? The cards read product_metrics for{" "}
-        {slice === "overall" ? "the portfolio" : `${labelSlice(slice).toLowerCase()} · ${labelValue(slice, value)}`}.
-      </p>
+    <article className="page-content home-page">
+      <div className="overview-hero">
+        <div className="relative z-10">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#b0eba1]">01 / Portfolio overview</p>
+          <h1 className="mt-5 max-w-3xl font-display text-5xl leading-[1.02] tracking-tight text-white sm:text-6xl">
+            Approval isn&apos;t the finish line. <em className="font-normal text-[#a6e986]">Funding is.</em>
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-[#dbe4e4]">
+            Are we funding the applications we approve? Explore the governed metrics for{" "}
+            {slice === "overall" ? "the portfolio" : `${labelSlice(slice).toLowerCase()} · ${labelValue(slice, value)}`}.
+          </p>
+        </div>
+        <div className="relative z-10 self-end border-l border-white/20 pl-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#b7c8ca]">Funded / started</p>
+          <p className="num mt-3 text-5xl font-semibold tracking-tight text-white">
+            {formatPercent(metric("funding_rate", slice, value)?.metric_value ?? null)}
+          </p>
+          <p className="mt-2 text-sm text-[#c1d1d1]">End-to-end funding rate</p>
+        </div>
+      </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Kpi label="Applications started" row={metric("applications_started", slice, value)} />
@@ -63,7 +74,7 @@ export default function OverviewPage() {
         title="Approval rate and funding rate"
         lede="started_month and started_week are portfolio cuts. A device, browser, or channel filter changes the cards above. It does not cross with this trend, because the mart has no combined slice."
       >
-        <div className="rounded-2xl border border-line bg-card p-4">
+        <div className="data-panel p-4">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
             <span className="text-copper">Approval rate</span>
             <span className="text-pine">Funding rate</span>
@@ -110,10 +121,10 @@ export default function OverviewPage() {
       <Section
         kicker="From the export"
         title="Three readings of published slices"
-        lede="These sentences quote product_metrics. They are rankings and comparisons of rows already in the export. A formal EDA write-up is a later contract."
+        lede="These descriptive comparisons quote product_metrics. They do not establish causes or a shipping decision."
       >
         <div className="grid gap-3 lg:grid-cols-3">
-          <article className="rounded-2xl border border-line bg-card p-4">
+          <article className="data-panel p-4">
             <h3 className="font-display text-xl text-ink">Approval and funding by month</h3>
             {reading ? (
               <p className="mt-3 text-sm leading-6 text-muted">
@@ -127,7 +138,7 @@ export default function OverviewPage() {
               <p className="mt-3 text-sm text-muted">The month slice has no paired rates.</p>
             )}
           </article>
-          <article className="rounded-2xl border border-line bg-card p-4">
+          <article className="data-panel p-4">
             <h3 className="font-display text-xl text-ink">Bank connection by device and browser</h3>
             {lowest ? (
               <p className="mt-3 text-sm leading-6 text-muted">
@@ -140,7 +151,7 @@ export default function OverviewPage() {
               <p className="mt-3 text-sm text-muted">No device_browser rows.</p>
             )}
           </article>
-          <article className="rounded-2xl border border-line bg-card p-4">
+          <article className="data-panel p-4">
             <h3 className="font-display text-xl text-ink">Decision time by path</h3>
             {auto && manual ? (
               <p className="mt-3 text-sm leading-6 text-muted">

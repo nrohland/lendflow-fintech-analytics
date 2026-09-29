@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Figtree, Fraunces } from "next/font/google";
+import { Inter, Newsreader } from "next/font/google";
 import { Shell } from "@/components/shell";
 import "./globals.css";
 
-const sans = Figtree({
+const sans = Inter({
   subsets: ["latin"],
-  variable: "--font-figtree",
+  variable: "--font-inter",
 });
 
-const display = Fraunces({
+const display = Newsreader({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  variable: "--font-newsreader",
 });
 
 export const metadata: Metadata = {

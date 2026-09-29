@@ -13,11 +13,11 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-10">
-      <p className="text-xs uppercase tracking-[0.16em] text-copper">{kicker}</p>
-      <h2 className="mt-1 font-display text-2xl tracking-tight text-ink">{title}</h2>
+    <section className="mt-14">
+      <p className="text-xs font-bold uppercase tracking-[0.13em] text-pine">{kicker}</p>
+      <h2 className="mt-2 font-display text-3xl leading-tight tracking-tight text-ink sm:text-4xl">{title}</h2>
       {lede ? <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{lede}</p> : null}
-      <div className="mt-4">{children}</div>
+      <div className="mt-5">{children}</div>
     </section>
   );
 }
@@ -36,9 +36,10 @@ export function Kpi({
       ? `${formatCount(row.numerator)} / ${formatCount(row.denominator)}`
       : null;
   return (
-    <article className="rounded-2xl border border-line bg-card px-4 py-4">
-      <p className="text-[11px] uppercase tracking-[0.14em] text-muted">{label}</p>
-      <p className="num mt-2 font-display text-3xl tracking-tight text-ink">
+    <article className="data-panel relative overflow-hidden px-5 py-5">
+      <span className="absolute left-5 top-0 h-1 w-9 rounded-b bg-[#7bd568]" aria-hidden="true" />
+      <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">{label}</p>
+      <p className="num mt-3 font-sans text-3xl font-semibold tracking-[-0.045em] text-ink">
         {row ? formatMetric(row.metric_value, row.unit) : "—"}
       </p>
       <p className="mt-2 text-xs leading-5 text-muted">{hint ?? row?.population ?? "No row for this slice"}</p>
@@ -49,7 +50,7 @@ export function Kpi({
 
 export function Note({ children }: { children: React.ReactNode }) {
   return (
-    <p className="rounded-xl border border-gold/30 bg-gold-soft px-3 py-2 text-sm leading-6 text-ink">
+    <p className="rounded-lg border-l-[3px] border-[#60b975] bg-pine-soft px-4 py-3 text-sm leading-6 text-ink">
       {children}
     </p>
   );

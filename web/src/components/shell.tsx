@@ -79,49 +79,48 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <SliceContext.Provider value={api}>
       <div className="min-h-screen">
-        <header className="sticky top-0 z-20 border-b border-line bg-paper/95 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <Link href="/" className="font-display text-xl tracking-tight text-ink">
-              LendFlow
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-md focus:bg-card focus:px-4 focus:py-2">Skip to content</a>
+        <header className="site-header border-b border-line">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-8">
+            <Link href="/" className="brand-mark font-sans text-[1.05rem] font-bold tracking-[-0.03em] text-ink" translate="no">
+              <span className="brand-mark-icon" aria-hidden="true">L</span>
+              <span>LendFlow <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted">Product intelligence</span></span>
             </Link>
-            <p className="text-right text-xs text-muted">Synthetic auto-loan case study</p>
+            <p className="hidden text-right text-xs font-medium text-muted sm:block">Synthetic auto-loan analytics</p>
           </div>
-          <div className="border-y border-copper/30 bg-copper-soft">
-            <p className="mx-auto max-w-6xl px-4 py-2 text-sm text-ink sm:px-6">
-              <span className="font-semibold">Synthetic data.</span> Unofficial portfolio case study.
-              Not a lender product. Not affiliated with any real lender.
+          <div className="border-y border-line bg-[#edf6ed]">
+            <p className="mx-auto max-w-7xl px-4 py-2 text-xs leading-5 text-ink sm:px-8">
+              <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#4fae67]" aria-hidden="true" />
+              <span className="font-semibold">Synthetic data</span> · Unofficial portfolio case study · No real applicants or lender affiliation
             </p>
           </div>
-          <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2 sm:px-6" aria-label="Pages">
+          <nav className="site-nav mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 py-2 sm:px-8" aria-label="Pages">
             {NAV.map((item) => {
-              const active = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-sm ${
-                    active ? "bg-ink text-paper" : "text-muted hover:bg-card hover:text-ink"
-                  }`}
+                  aria-current={pathname === item.href ? "page" : undefined}
+                  className="shrink-0 px-3 py-2 text-sm font-medium text-muted"
                 >
-                  <span className="mr-1 text-[11px] tracking-wide">{item.index}</span>
                   {item.label}
                 </Link>
               );
             })}
           </nav>
           {showFilter ? (
-            <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 pb-3 sm:px-6">
-              <span className="text-xs uppercase tracking-wide text-muted">Slice</span>
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 pb-3 sm:px-8">
+              <span className="mr-1 text-xs font-bold uppercase tracking-wide text-muted">View by</span>
               {FILTER_SLICES.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => api.setSlice(item.id)}
-                  className={`rounded-full border px-3 py-1 text-sm ${
+                  aria-pressed={slice === item.id}
+                  className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
                     slice === item.id
-                      ? "border-ink bg-ink text-paper"
-                      : "border-line bg-card text-ink hover:border-muted"
+                      ? "border-pine bg-pine text-white"
+                      : "border-line bg-card text-ink hover:border-pine"
                   }`}
                 >
                   {item.label}
@@ -131,7 +130,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 <label className="ml-1 text-sm text-muted">
                   <span className="sr-only">{labelSlice(slice)} value</span>
                   <select
-                    className="rounded-full border border-line bg-card px-3 py-1 text-ink"
+                    className="rounded-md border border-line bg-card px-3 py-1.5 text-ink"
                     value={value}
                     onChange={(event) => api.setSlice(slice, event.target.value)}
                   >
@@ -145,16 +144,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
               ) : null}
             </div>
           ) : (
-            <p className="mx-auto max-w-6xl px-4 pb-3 text-sm text-muted sm:px-6">
+            <p className="mx-auto max-w-7xl px-4 pb-3 text-xs text-muted sm:px-8">
               {pathname === "/ask"
                 ? "Ask reads product_metrics and fct_experiment_results. The slice control on the other pages is not applied here."
                 : "Experiment rows are the assigned comparison in fct_experiment_results. Device, browser, channel, and period filters apply on the other pages."}
             </p>
           )}
         </header>
-        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+        <main id="main-content" tabIndex={-1} className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-14">{children}</main>
         <footer className="border-t border-line">
-          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-muted sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-8 text-xs text-muted sm:px-8">
             <p>{sourceLine()}</p>
             <p>
               Figures are read from the governed export: product_metrics and fct_experiment_results.

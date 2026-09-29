@@ -52,6 +52,8 @@ A production build, without starting the server:
 make web-build
 ```
 
+Run `npm test` from `web/` to verify curated-answer boundaries. CI also rebuilds the dashboard snapshot from dbt and fails if it differs from the committed JSON.
+
 No `.env` file is required.
 
 ## Vercel
