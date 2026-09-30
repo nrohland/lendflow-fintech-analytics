@@ -36,7 +36,6 @@ export function ConversionFunnel({ data }: { data: { name: string; value: number
     <div className="h-80 w-full sm:h-[23rem]" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
         <FunnelChart margin={{ top: 6, right: 8, bottom: 6, left: 8 }}>
-          <Tooltip contentStyle={tooltipStyle} formatter={(value) => [formatCount(Number(value)), "Applications"]} />
           <Funnel data={data} dataKey="value" nameKey="name" lastShapeType="rectangle" isAnimationActive={false}>
             {data.map((row, index) => <Cell key={row.name} fill={colors[index] ?? colors[colors.length - 1]} stroke="#ffffff" strokeWidth={2} />)}
             <LabelList content={(props) => {
