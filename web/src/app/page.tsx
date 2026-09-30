@@ -96,31 +96,26 @@ export default function OverviewPage() {
       <Section
         kicker="Conversion funnel"
         title="From application start to funding"
-        lede="The funnel follows the selected filter. Shape width shows each stage's share of applications started; the percentages beside it use the stated denominator."
+        lede="The funnel narrows with the number of applications reaching each stage. It follows the selected filter."
       >
-        <div className="data-panel grid items-center gap-5 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,.8fr)] lg:gap-8 lg:p-7">
+        <div className="data-panel p-5 lg:p-7">
           {chartRows.length >= 2 ? <ConversionFunnel data={chartRows} /> : <p className="text-sm text-muted">No funnel data for this filter.</p>}
-          <div>
-            <ol className="grid gap-1" aria-label="Application stages">
-              {funnel.map((stage, index) => (
-                <li key={stage.name} className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-line py-3 last:border-b-0">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-pine-soft text-xs font-bold text-pine">{index + 1}</span>
-                  <span>
-                    <span className="block text-sm font-semibold text-ink">{stage.name}</span>
-                    <span className="block text-xs text-muted">{stage.rate == null ? stage.basis : `${formatPercent(stage.rate)} ${stage.basis}`}</span>
-                  </span>
-                  <strong className="num text-base text-ink">{formatCount(stage.value)}</strong>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-4 rounded-lg bg-paper px-4 py-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted">Median time to decision</p>
-              <p className="num mt-1 text-2xl font-semibold text-ink">{formatMinutes(metric("median_time_to_decision", slice, value)?.metric_value)}</p>
-              <p className="mt-1 text-xs text-muted">Among applications with a decision</p>
-            </div>
+          <ol className="sr-only" aria-label="Application stages and conversion rates">
+            {funnel.map((stage) => (
+              <li key={stage.name}>{stage.name}: {formatCount(stage.value)} applications. {stage.rate == null ? stage.basis : `${formatPercent(stage.rate)} ${stage.basis}`}.</li>
+            ))}
+          </ol>
+          <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-muted">
+            {funnel.slice(1).map((stage) => (
+              <span key={stage.name}><strong className="font-semibold text-ink">{stage.name}</strong> {formatPercent(stage.rate)} {stage.basis}</span>
+            ))}
+          </div>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
+            <p className="text-sm text-muted">Median time to decision <span className="text-xs">· among decided applications</span></p>
+            <strong className="num text-lg font-semibold text-ink">{formatMinutes(metric("median_time_to_decision", slice, value)?.metric_value)}</strong>
           </div>
         </div>
-        <p className="mt-3 text-xs leading-5 text-muted">For approval, the denominator is decided applications. The full stage-by-stage breakdown is on the Funnel page.</p>
+        <p className="mt-3 text-xs leading-5 text-muted">The full stage-by-stage breakdown is on the Funnel page.</p>
       </Section>
 
       <section className="mt-14" aria-labelledby="explore-title">

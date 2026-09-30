@@ -9,6 +9,7 @@ import {
   ErrorBar,
   Funnel,
   FunnelChart,
+  LabelList,
   Line,
   LineChart,
   ReferenceLine,
@@ -30,14 +31,29 @@ const tooltipStyle = {
 const axisTick = { fill: "#596473", fontSize: 12 };
 
 export function ConversionFunnel({ data }: { data: { name: string; value: number }[] }) {
-  const colors = ["#c4e8c7", "#89d994", "#4cae70", "#226f54"];
+  const colors = ["#c4e8c7", "#89d994", "#287b57", "#226f54"];
   return (
-    <div className="h-72 w-full sm:h-80" aria-hidden="true">
+    <div className="h-80 w-full sm:h-[23rem]" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
-        <FunnelChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+        <FunnelChart margin={{ top: 6, right: 8, bottom: 6, left: 8 }}>
           <Tooltip contentStyle={tooltipStyle} formatter={(value) => [formatCount(Number(value)), "Applications"]} />
           <Funnel data={data} dataKey="value" nameKey="name" lastShapeType="rectangle" isAnimationActive={false}>
             {data.map((row, index) => <Cell key={row.name} fill={colors[index] ?? colors[colors.length - 1]} stroke="#ffffff" strokeWidth={2} />)}
+            <LabelList content={(props) => {
+              const row = typeof props.index === "number" ? data[props.index] : null;
+              const box = props.viewBox as { x?: number; y?: number; width?: number; height?: number; upperWidth?: number; lowerWidth?: number } | undefined;
+              if (!row || box?.x == null || box.y == null || box.width == null || box.height == null) return <g />;
+              const compact = Math.min(box.upperWidth ?? box.width, box.lowerWidth ?? box.width) < 90;
+              const x = box.x + box.width / 2;
+              const y = box.y + box.height / 2;
+              const fill = props.index != null && props.index >= 2 ? "#ffffff" : "#193d30";
+              return (
+                <text x={x} y={y - (compact ? 6 : 8)} textAnchor="middle" fill={fill} fontFamily="var(--font-inter), sans-serif" fontWeight={700}>
+                  <tspan x={x} fontSize={compact ? 9 : 12}>{row.name}</tspan>
+                  <tspan x={x} dy={compact ? 14 : 20} fontSize={compact ? 10 : 16}>{formatCount(row.value)}</tspan>
+                </text>
+              );
+            }} />
           </Funnel>
         </FunnelChart>
       </ResponsiveContainer>
