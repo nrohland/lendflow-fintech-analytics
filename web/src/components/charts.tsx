@@ -7,6 +7,8 @@ import {
   Cell,
   ComposedChart,
   ErrorBar,
+  Funnel,
+  FunnelChart,
   Line,
   LineChart,
   ReferenceLine,
@@ -26,6 +28,22 @@ const tooltipStyle = {
 };
 
 const axisTick = { fill: "#596473", fontSize: 12 };
+
+export function ConversionFunnel({ data }: { data: { name: string; value: number }[] }) {
+  const colors = ["#c4e8c7", "#89d994", "#4cae70", "#226f54"];
+  return (
+    <div className="h-72 w-full sm:h-80" aria-hidden="true">
+      <ResponsiveContainer width="100%" height="100%">
+        <FunnelChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+          <Tooltip contentStyle={tooltipStyle} formatter={(value) => [formatCount(Number(value)), "Applications"]} />
+          <Funnel data={data} dataKey="value" nameKey="name" lastShapeType="rectangle" isAnimationActive={false}>
+            {data.map((row, index) => <Cell key={row.name} fill={colors[index] ?? colors[colors.length - 1]} stroke="#ffffff" strokeWidth={2} />)}
+          </Funnel>
+        </FunnelChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 export function TrendChart({
   data,

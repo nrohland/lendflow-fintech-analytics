@@ -14,7 +14,7 @@ Pages:
 | `/experiment` | Did bank-connection clarity change completion? | `fct_experiment_results` |
 | `/ask` | Can an analyst ask the governed layer a fixed question? | `product_metrics` and `fct_experiment_results` |
 
-The overview opens with three portfolio-wide findings and a short route through the remaining pages. Header filters change the page's headline figures; sections explicitly marked as portfolio comparisons stay fixed. Public labels and narrative copy translate warehouse identifiers into readable names. Raw SQL is available only in expandable technical details on the experiment and Ask pages.
+The overview opens with three portfolio-wide findings and a short route through the remaining pages. A four-stage conversion funnel replaces the headline KPI grid; it shows absolute application counts as proportional widths and labels the denominator for each transition. Median decision time sits outside that funnel. Header filters change the funnel and other page figures; sections explicitly marked as portfolio comparisons stay fixed. Public labels and narrative copy translate warehouse identifiers into readable names. Raw SQL is available only in expandable technical details on the experiment and Ask pages.
 
 The synthetic, unofficial disclosure remains visible in the header. The verbose technical footer was removed.
 

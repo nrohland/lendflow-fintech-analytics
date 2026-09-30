@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Kpi, Section } from "@/components/bits";
-import { TrendChart } from "@/components/charts";
+import { Section } from "@/components/bits";
+import { ConversionFunnel, TrendChart } from "@/components/charts";
 import { useSlice } from "@/components/shell";
-import { formatPercent, formatSignedPp } from "@/lib/format";
+import { formatMinutes, formatPercent, formatSignedPp } from "@/lib/format";
 import {
-  FUNDING_PATH,
-  funnelStep,
   labelSlice,
   labelValue,
   metric,
@@ -23,10 +21,13 @@ export default function OverviewPage() {
   const bankDrop = metric("step_drop_off_rate", "overall", "all", "bank_connection_started");
   const fundedAfterApproval = metric("approved_to_funded_rate", "overall", "all");
   const experiment = primaryExperiment();
-  const steps = FUNDING_PATH.map((name) => funnelStep(name, slice, value)).filter(
-    (step) => step.reached != null,
-  );
-  const maxReached = Math.max(...steps.map((step) => step.reached ?? 0), 1);
+  const funnel = [
+    { name: "Started", value: metric("applications_started", slice, value)?.metric_value ?? null, rate: null, basis: "Starting population" },
+    { name: "Submitted", value: metric("submitted_applications", slice, value)?.metric_value ?? null, rate: metric("application_completion_rate", slice, value)?.metric_value ?? null, basis: "of started" },
+    { name: "Approved", value: metric("approved_applications", slice, value)?.metric_value ?? null, rate: metric("approval_rate", slice, value)?.metric_value ?? null, basis: "of decided" },
+    { name: "Funded", value: metric("funded_applications", slice, value)?.metric_value ?? null, rate: metric("approved_to_funded_rate", slice, value)?.metric_value ?? null, basis: "of approved" },
+  ];
+  const chartRows = funnel.filter((row): row is typeof row & { value: number } => row.value != null);
   const activeLabel =
     slice === grain ? series.find((point) => point.value === value)?.label ?? null : null;
 
@@ -92,18 +93,35 @@ export default function OverviewPage() {
         </p>
       </section>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Kpi label="Applications started" row={metric("applications_started", slice, value)} />
-        <Kpi label="Application completion" row={metric("application_completion_rate", slice, value)} />
-        <Kpi label="Approval rate" row={metric("approval_rate", slice, value)} hint="Approved / decided" />
-        <Kpi label="Funding rate" row={metric("funding_rate", slice, value)} hint="Funded / started" />
-        <Kpi
-          label="Approved to funded"
-          row={metric("approved_to_funded_rate", slice, value)}
-          hint="Funded / approved"
-        />
-        <Kpi label="Median time to decision" row={metric("median_time_to_decision", slice, value)} />
-      </div>
+      <Section
+        kicker="Conversion funnel"
+        title="From application start to funding"
+        lede="The funnel follows the selected filter. Shape width shows each stage's share of applications started; the percentages beside it use the stated denominator."
+      >
+        <div className="data-panel grid items-center gap-5 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,.8fr)] lg:gap-8 lg:p-7">
+          {chartRows.length >= 2 ? <ConversionFunnel data={chartRows} /> : <p className="text-sm text-muted">No funnel data for this filter.</p>}
+          <div>
+            <ol className="grid gap-1" aria-label="Application stages">
+              {funnel.map((stage, index) => (
+                <li key={stage.name} className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-line py-3 last:border-b-0">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-pine-soft text-xs font-bold text-pine">{index + 1}</span>
+                  <span>
+                    <span className="block text-sm font-semibold text-ink">{stage.name}</span>
+                    <span className="block text-xs text-muted">{stage.rate == null ? stage.basis : `${formatPercent(stage.rate)} ${stage.basis}`}</span>
+                  </span>
+                  <strong className="num text-base text-ink">{formatCount(stage.value)}</strong>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-4 rounded-lg bg-paper px-4 py-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted">Median time to decision</p>
+              <p className="num mt-1 text-2xl font-semibold text-ink">{formatMinutes(metric("median_time_to_decision", slice, value)?.metric_value)}</p>
+              <p className="mt-1 text-xs text-muted">Among applications with a decision</p>
+            </div>
+          </div>
+        </div>
+        <p className="mt-3 text-xs leading-5 text-muted">For approval, the denominator is decided applications. The full stage-by-stage breakdown is on the Funnel page.</p>
+      </Section>
 
       <section className="mt-14" aria-labelledby="explore-title">
         <p className="text-xs font-bold uppercase tracking-[0.13em] text-pine">Explore the story</p>
@@ -146,27 +164,6 @@ export default function OverviewPage() {
           </div>
           <TrendChart data={series} activeLabel={activeLabel} />
         </div>
-      </Section>
-
-      <Section
-        kicker="Funding path"
-        title="Reached volume on the selected slice"
-        lede="The number of applications reaching each stage for the selected filter. The funnel page shows conversion and drop-off between stages."
-      >
-        <ol className="grid gap-2">
-          {steps.map((step) => (
-            <li key={step.name} className="grid grid-cols-[minmax(0,11rem)_1fr_auto] items-center gap-3 text-sm">
-              <span className="truncate text-muted">{step.label}</span>
-              <span className="h-2 rounded-full bg-line">
-                <span
-                  className="block h-2 rounded-full bg-pine"
-                  style={{ width: `${((step.reached ?? 0) / maxReached) * 100}%` }}
-                />
-              </span>
-              <span className="num text-ink">{formatCount(step.reached)}</span>
-            </li>
-          ))}
-        </ol>
       </Section>
 
     </article>
