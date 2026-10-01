@@ -1,0 +1,45 @@
+version: "1.0-min"
+task_id: TASK-LENDFLOW-REFRESH
+objective: >
+  Improve the portfolio application's visual hierarchy and usability, and close
+  verification and documentation gaps identified by the read-only audit.
+context: >
+  Owner approved continuation after the audit on 2026-09-29. Keep the case study
+  synthetic and unofficial. Use governed metrics and deterministic answers.
+  Owner requested a final full-interface design review on 2026-10-01.
+graph_id: feature
+owner: nrohland
+reviewer: independent-reviewer
+approvals:
+  create_draft_pr: true
+data_project: true
+architecture:
+  impacted: false
+scope:
+  allowed_paths:
+    - web/
+    - docs/
+    - README.md
+    - AGENTS.md
+    - .github/workflows/
+  forbidden:
+    - "**/.env"
+    - "**/secrets/**"
+  non_goals:
+    - Live model or cloud warehouse
+    - Real applicant data
+    - Invented SLA or guardrail thresholds
+acceptance:
+  - Dashboard pages use a coherent responsive visual system
+  - Synthetic and unofficial disclosure remains visible
+  - Keyboard navigation and reduced motion are supported
+  - Curated-answer boundaries have automated tests
+  - CI verifies source contracts and the committed dashboard snapshot
+  - Architecture and run instructions reflect the implemented project
+  - Charts show readable values, denominators, and experiment confidence intervals
+  - Dense evidence remains available in expandable data tables
+  - Final review records runtime checks and the analytical handoff
+  - Draft PR; only nrohland merges
+constraints:
+  - One task contract produces one draft PR
+  - No real-lender names, marks, or proprietary assets

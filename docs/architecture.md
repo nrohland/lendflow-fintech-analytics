@@ -1,6 +1,6 @@
 # LendFlow architecture
 
-Phase 1 design. No generator, dbt project, or UI in this repository yet.
+The synthetic generator, local dbt project, frozen mart export, and Next.js dashboard are implemented. The dashboard and curated Ask page consume the same committed snapshot.
 
 ## Objective
 
@@ -48,7 +48,7 @@ Python → Parquet → DuckDB + dbt → mart export → Next.js
 
 | Stage | Role |
 | --- | --- |
-| Python | Deterministic synthetic generator. Fixed seed. About 100,000 applications. Later contract. |
+| Python | Deterministic synthetic generator. Fixed seed. 100,000 applications. |
 | Parquet | Source tables from the [analytical spec](../specs/analytical-spec.md). |
 | DuckDB + dbt | Local engine and governed models. `dbt-duckdb`. Zero warehouse cost. |
 | Mart export | Frozen facts and metrics. Parquet for facts. A small JSON document for the UI. SQL text for Ask LendFlow sits with that document. |
@@ -56,7 +56,7 @@ Python → Parquet → DuckDB + dbt → mart export → Next.js
 | Dashboard | Overview, Application Funnel, Operations, Experiment, and Ask LendFlow at `/ask`. |
 | Ask LendFlow | V1 answers are deterministic and curated. Same metrics as the dashboard. Read-only SQL can be shown. A live LLM is out of V1. |
 
-EDA is mandatory before dashboard copy. `data_project: true` on the task contract schedules that work. It is not part of this design package.
+Dashboard copy is descriptive and sourced to the export. It does not assign cause or recommend shipping the experiment. Formal EDA and decision thresholds remain open analytical work.
 
 Northstar ([ecommerce profitability analytics](https://ecommerce-profitability-analytics.vercel.app/)) is the UX pattern reference: one thesis, an executive overview, KPI cards, trends, analyst signals, one governed metric layer, visible read-only SQL, synthetic data disclosed. Do not copy its content or its section list.
 
@@ -64,9 +64,9 @@ Northstar ([ecommerce profitability analytics](https://ecommerce-profitability-a
 
 - One local metric layer feeds both the dashboard and Ask LendFlow.
 - dbt tests are the governance point. The UI does not re-implement metrics.
-- There is no warehouse cost. Rebuilds are a local or CI command, still to be written.
+- There is no warehouse cost. Local rebuilds use `make marts`; CI now rebuilds and checks the committed snapshot.
 - The UI cannot run ad-hoc SQL against DuckDB. Ask LendFlow shows curated questions and the SQL that defines them.
-- The export can go stale if a later contract skips the rebuild step. The dbt contract has to make that command the only publish path.
+- The export can go stale if a local change bypasses `make marts`. CI checks that the committed snapshot matches a fresh build.
 
 ## Alternatives
 

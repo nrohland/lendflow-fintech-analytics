@@ -3,168 +3,87 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { labelSlice, labelValue, sliceValues, snapshot, sourceLine } from "@/lib/metrics";
+import { labelSlice, labelValue, metric, sliceValues, snapshot } from "@/lib/metrics";
+import { formatCount, formatPeriod } from "@/lib/format";
 import { FILTER_SLICES, type FilterSlice } from "@/lib/types";
 
-type SliceState = {
-  slice: FilterSlice;
-  value: string;
-  setSlice: (slice: FilterSlice, value?: string) => void;
-};
-
+type SliceState = { slice: FilterSlice; value: string; setSlice: (slice: FilterSlice, value?: string) => void };
 const SliceContext = createContext<SliceState | null>(null);
-
 export function useSlice(): SliceState {
   const value = useContext(SliceContext);
-  if (!value) {
-    throw new Error("useSlice requires Shell");
-  }
+  if (!value) throw new Error("useSlice requires Shell");
   return value;
 }
-
 const NAV = [
-  { href: "/", label: "Overview", index: "01" },
-  { href: "/funnel", label: "Application Funnel", index: "02" },
-  { href: "/operations", label: "Operations", index: "03" },
-  { href: "/experiment", label: "Experiment", index: "04" },
-  { href: "/ask", label: "Ask LendFlow", index: "05" },
+  { href: "/", label: "Overview" }, { href: "/funnel", label: "Application funnel" },
+  { href: "/operations", label: "Operations" }, { href: "/experiment", label: "Experiment" },
+  { href: "/ask", label: "Ask LendFlow" },
 ];
-
-function isFilterSlice(value: string | null): value is FilterSlice {
-  return FILTER_SLICES.some((slice) => slice.id === value);
-}
+function isFilterSlice(value: string | null): value is FilterSlice { return FILTER_SLICES.some((slice) => slice.id === value); }
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [slice, setSliceName] = useState<FilterSlice>("overall");
   const [value, setValue] = useState("all");
-
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const requested = params.get("slice");
-    if (!isFilterSlice(requested) || requested === "overall") return;
-    const values = sliceValues(requested);
-    const requestedValue = params.get("value");
-    if (requestedValue && values.includes(requestedValue)) {
-      setSliceName(requested);
-      setValue(requestedValue);
+    function syncFromUrl() {
+      if (window.location.pathname === "/experiment" || window.location.pathname === "/ask") return;
+      const params = new URLSearchParams(window.location.search);
+      const requested = params.get("slice");
+      const requestedValue = params.get("value");
+      if (isFilterSlice(requested) && requested !== "overall" && requestedValue && sliceValues(requested).includes(requestedValue)) {
+        setSliceName(requested); setValue(requestedValue);
+      } else { setSliceName("overall"); setValue("all"); }
     }
-  }, []);
-
-  const api = useMemo<SliceState>(
-    () => ({
-      slice,
-      value,
-      setSlice: (next, nextValue) => {
-        const resolved = next === "overall" ? "all" : (nextValue ?? sliceValues(next)[0] ?? "all");
-        setSliceName(next);
-        setValue(resolved);
-        const url = new URL(window.location.href);
-        if (next === "overall") {
-          url.searchParams.delete("slice");
-          url.searchParams.delete("value");
-        } else {
-          url.searchParams.set("slice", next);
-          url.searchParams.set("value", resolved);
-        }
-        window.history.replaceState(null, "", url);
-      },
-    }),
-    [slice, value],
-  );
-
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [pathname]);
+  const api = useMemo<SliceState>(() => ({ slice, value, setSlice: (next, nextValue) => {
+    const resolved = next === "overall" ? "all" : nextValue ?? sliceValues(next)[0] ?? "all";
+    setSliceName(next); setValue(resolved);
+    const url = new URL(window.location.href);
+    if (next === "overall") { url.searchParams.delete("slice"); url.searchParams.delete("value"); }
+    else { url.searchParams.set("slice", next); url.searchParams.set("value", resolved); }
+    window.history.replaceState(null, "", url);
+  }}), [slice, value]);
   const showFilter = pathname !== "/experiment" && pathname !== "/ask";
   const values = slice === "overall" ? [] : sliceValues(slice);
+  const source = snapshot.source;
+  const end = source?.window_end_exclusive ? new Date(Date.parse(source.window_end_exclusive) - 86400000).toISOString().slice(0, 10) : null;
+  const period = source?.window_start && end ? `${formatPeriod(source.window_start, "started_month")} to ${formatPeriod(end, "started_month")}` : "Published portfolio";
 
-  return (
-    <SliceContext.Provider value={api}>
-      <div className="min-h-screen">
-        <header className="sticky top-0 z-20 border-b border-line bg-paper/95 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <Link href="/" className="font-display text-xl tracking-tight text-ink">
-              LendFlow
-            </Link>
-            <p className="text-right text-xs text-muted">Synthetic auto-loan case study</p>
+  return <SliceContext.Provider value={api}>
+    <div className="min-h-screen">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-md focus:bg-card focus:px-4 focus:py-2">Skip to content</a>
+      <header className="site-header">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-8">
+          <Link href="/" className="brand-mark text-lg font-bold tracking-tight" translate="no"><span className="brand-mark-icon" aria-hidden="true">L</span><span>LendFlow</span></Link>
+          <div className="text-right text-xs leading-5 text-muted"><p>Synthetic data · Unofficial case study</p><p>{period}</p></div>
+        </div>
+        <nav className="site-nav mx-auto flex max-w-7xl gap-4 px-4 sm:gap-6 sm:px-8" aria-label="Pages">
+          {NAV.map((item) => {
+            const query = slice !== "overall" && item.href !== "/experiment" && item.href !== "/ask" ? `?${new URLSearchParams({ slice, value })}` : "";
+            return <Link key={item.href} href={`${item.href}${query}`} aria-current={pathname === item.href ? "page" : undefined} className="px-1 py-3 text-sm font-medium text-muted">{item.label}</Link>;
+          })}
+        </nav>
+        <div className="filter-bar">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-8">
+            {showFilter ? <>
+              <label htmlFor="view-by" className="text-xs font-semibold text-muted">View</label>
+              <select id="view-by" value={slice} onChange={(event) => api.setSlice(event.target.value as FilterSlice)}>{FILTER_SLICES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
+              {slice !== "overall" ? <>
+                <label className="sr-only" htmlFor="view-value">{labelSlice(slice)} value</label>
+                <select id="view-value" value={value} onChange={(event) => api.setSlice(slice, event.target.value)}>{values.map((item) => <option key={item} value={item}>{labelValue(slice, item)}</option>)}</select>
+                <button type="button" className="text-link px-1" onClick={() => api.setSlice("overall")}>Reset view</button>
+              </> : null}
+              <p className="ml-auto text-xs text-muted" role="status">{formatCount(metric("applications_started", slice, value)?.metric_value)} applications started</p>
+              <p className="w-full text-xs text-muted">One view at a time. Comparisons labeled Portfolio stay fixed.</p>
+            </> : <p className="text-xs leading-5 text-muted">{pathname === "/ask" ? "A library of answers from the published metrics. No live model." : "Assigned control and treatment groups. Portfolio filters do not apply."}</p>}
           </div>
-          <div className="border-y border-copper/30 bg-copper-soft">
-            <p className="mx-auto max-w-6xl px-4 py-2 text-sm text-ink sm:px-6">
-              <span className="font-semibold">Synthetic data.</span> Unofficial portfolio case study.
-              Not a lender product. Not affiliated with any real lender.
-            </p>
-          </div>
-          <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2 sm:px-6" aria-label="Pages">
-            {NAV.map((item) => {
-              const active = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-sm ${
-                    active ? "bg-ink text-paper" : "text-muted hover:bg-card hover:text-ink"
-                  }`}
-                >
-                  <span className="mr-1 text-[11px] tracking-wide">{item.index}</span>
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-          {showFilter ? (
-            <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 pb-3 sm:px-6">
-              <span className="text-xs uppercase tracking-wide text-muted">Slice</span>
-              {FILTER_SLICES.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => api.setSlice(item.id)}
-                  className={`rounded-full border px-3 py-1 text-sm ${
-                    slice === item.id
-                      ? "border-ink bg-ink text-paper"
-                      : "border-line bg-card text-ink hover:border-muted"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-              {slice !== "overall" ? (
-                <label className="ml-1 text-sm text-muted">
-                  <span className="sr-only">{labelSlice(slice)} value</span>
-                  <select
-                    className="rounded-full border border-line bg-card px-3 py-1 text-ink"
-                    value={value}
-                    onChange={(event) => api.setSlice(slice, event.target.value)}
-                  >
-                    {values.map((item) => (
-                      <option key={item} value={item}>
-                        {labelValue(slice, item)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-            </div>
-          ) : (
-            <p className="mx-auto max-w-6xl px-4 pb-3 text-sm text-muted sm:px-6">
-              {pathname === "/ask"
-                ? "Ask reads product_metrics and fct_experiment_results. The slice control on the other pages is not applied here."
-                : "Experiment rows are the assigned comparison in fct_experiment_results. Device, browser, channel, and period filters apply on the other pages."}
-            </p>
-          )}
-        </header>
-        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
-        <footer className="border-t border-line">
-          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-muted sm:px-6">
-            <p>{sourceLine()}</p>
-            <p>
-              Figures are read from the governed export: product_metrics and fct_experiment_results.
-              product_decision is {snapshot.product_decision ?? "null"}. SLA attainment is{" "}
-              {snapshot.sla_attainment}.
-            </p>
-            <p>Synthetic data. Unofficial portfolio case study. Not affiliated with any real lender.</p>
-          </div>
-        </footer>
-      </div>
-    </SliceContext.Provider>
-  );
+        </div>
+      </header>
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10">{children}</main>
+    </div>
+  </SliceContext.Provider>;
 }

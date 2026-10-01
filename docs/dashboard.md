@@ -14,6 +14,10 @@ Pages:
 | `/experiment` | Did bank-connection clarity change completion? | `fct_experiment_results` |
 | `/ask` | Can an analyst ask the governed layer a fixed question? | `product_metrics` and `fct_experiment_results` |
 
+The overview opens with three portfolio-wide findings and a short route through the remaining pages. Its four-stage funnel uses proportional bars with application counts on the chart and keeps transition denominators in a short line below. Desktop uses vertical columns; mobile uses horizontal bars so stage names and counts remain readable. The Application Funnel page uses the same visual pattern for the full funding path. Median decision time sits outside the overview funnel. Header filters change the funnels and other page figures; sections explicitly marked as portfolio comparisons stay fixed. Public labels and narrative copy translate warehouse identifiers into readable names. Raw SQL is available only in expandable technical details on the experiment and Ask pages.
+
+The synthetic, unofficial disclosure remains visible in the header. The verbose technical footer was removed.
+
 ## Where the numbers come from
 
 ```text
@@ -52,6 +56,8 @@ A production build, without starting the server:
 make web-build
 ```
 
+Run `npm test` from `web/` to verify curated-answer boundaries and readable presentation labels. CI also rebuilds the dashboard snapshot from dbt and fails if it differs from the committed JSON.
+
 No `.env` file is required.
 
 ## Vercel
@@ -80,4 +86,16 @@ The slice control on the other pages is hidden on `/ask`. Answers name the slice
 
 ## What the experiment page will not fill in
 
-`fct_experiment_results.null_rejected_at_alpha` is the alpha 0.05 test. Ship, Iterate, and Do not ship stay unselected while `product_decision` is null. Guardrail rows have no pass or fail flag. The numeric margin for "approximately unchanged" is unset.
+`fct_experiment_results.null_rejected_at_alpha` is the alpha 0.05 test. The page explains the missing launch criteria while `product_decision` is null. Guardrail rows have no pass or fail flag. The numeric margin for "approximately unchanged" is unset.
+
+## Chart conventions
+
+- Counts and rates have separate scales. Channel comparisons show aligned charts, never a count/rate double axis.
+- Rate axes include zero and retain the full 0–100% scale. Conditional rates state their population.
+- Decision paths share an hour scale; their exact minute values remain in the chart data table.
+- Experiment points show treatment minus control in percentage points, with 95% confidence intervals and a zero reference. Time estimates stay in the results table instead of sharing that axis.
+- Risk groups follow low, moderate, elevated, high. Missing rates remain missing.
+- Every chart has an expandable data table. Dense scorecards and technical queries are available on demand.
+- Filtered navigation retains the selected view across Overview, Application funnel, and Operations. Fixed portfolio comparisons and the experiment identify their scope.
+
+The analytical readout is in [case-study.md](case-study.md). Final review evidence and remaining owner actions are in [final-review.md](final-review.md).

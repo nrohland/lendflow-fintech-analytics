@@ -28,13 +28,13 @@ Write role ids. Do not write bot display names in this repository.
 
 | Field | Value |
 | --- | --- |
-| `task_id` | `TASK-LENDFLOW-ASK` |
+| `task_id` | `TASK-LENDFLOW-REFRESH` |
 | `graph_id` | `feature` |
-| Contract | [docs/tasks/TASK-LENDFLOW-ASK.yaml](docs/tasks/TASK-LENDFLOW-ASK.yaml) |
+| Contract | [docs/tasks/TASK-LENDFLOW-REFRESH.yaml](docs/tasks/TASK-LENDFLOW-REFRESH.yaml) |
 | `data_project` | `true` |
 | `architecture.impacted` | `false` |
 
-Owner GO is in force for this contract. `architecture.impacted` is false. Ask LendFlow is a deterministic catalog over the mart export already on main. It does not add a live model, a warehouse, or new marts.
+Owner GO is in force for this contract. `architecture.impacted` is false. This task refines the existing interface, verification, and documentation. It does not add a live model, a warehouse, or new marts.
 
 Allowed paths:
 

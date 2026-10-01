@@ -85,7 +85,7 @@ export function titleCase(value: string): string {
 }
 
 export function formatPeriod(value: string, slice: string): string {
-  const [year, month, day] = value.split("-").map(Number);
+  const [year, month, day] = value.split("T")[0].split("-").map(Number);
   if (!year || !month || !day) return value;
   const date = new Date(Date.UTC(year, month - 1, day));
   if (slice === "started_month") {

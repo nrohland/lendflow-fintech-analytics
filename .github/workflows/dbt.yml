@@ -27,11 +27,19 @@ jobs:
       - name: Install
         run: make install
 
+      - name: Check synthetic source contracts
+        run: make check
+
       - name: dbt parse
         run: make dbt-parse
 
       - name: dbt build
         run: make dbt-build
+
+      - name: Check committed dashboard snapshot
+        run: |
+          make dbt-export
+          git diff --exit-code -- web/src/data/dashboard.json
 
       - name: dbt-checkpoint
         run: make dbt-checkpoint

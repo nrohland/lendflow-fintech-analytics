@@ -198,7 +198,7 @@ export function answerQuestion(raw: string): AskAnswer {
   if (leftoverTokens(q).length > 0) {
     return refuse(
       "unrecognized",
-      "This question is outside the Ask LendFlow catalog. Answers come from product_metrics and fct_experiment_results only.",
+      "This question is outside the Ask LendFlow catalog. Answers use the published dashboard metrics and experiment results only.",
     );
   }
   if (has(q, "guardrail") || has(q, "guardrails")) return answerGuardrails();
@@ -229,7 +229,7 @@ export function answerQuestion(raw: string): AskAnswer {
     if (detected.kind === "one") {
       return refuse(
         "decline_slice",
-        "The month series for funding conversion is the portfolio started_month slice. It is not crossed with another cut, so this reply stops.",
+        "The monthly funding trend covers the whole portfolio. It is not combined with this filter, so this reply stops.",
       );
     }
     return answerFundingDecline();
@@ -271,7 +271,7 @@ export function answerQuestion(raw: string): AskAnswer {
   }
   return refuse(
     "unknown",
-    "This question is outside the Ask LendFlow catalog. Answers come from product_metrics and fct_experiment_results only.",
+    "This question is outside the Ask LendFlow catalog. Answers use the published dashboard metrics and experiment results only.",
   );
 }
 
@@ -463,7 +463,7 @@ function refuseMissingPair(value: string): AskAnswer {
   const label = value.replace("|", " and ");
   return refuse(
     "missing_pair",
-    `device_browser has no published value for ${label}. The pair stays blank.`,
+    `No device and browser comparison is published for ${label}. The pair stays blank.`,
   );
 }
 
@@ -479,7 +479,7 @@ function answerDropoff(hit: SliceHit | null): AskAnswer {
         (right.row.metric_value ?? 0) - (left.row.metric_value ?? 0) || left.stage.stage_order - right.stage.stage_order,
     );
   if (ranked.length === 0) {
-    return refuse("missing_dropoff", "step_drop_off_rate is not published for that slice. No figure is filled in.");
+    return refuse("missing_dropoff", "Step drop-off is not published for that filter. No figure is filled in.");
   }
 
   const byCount = [...ranked].sort(
@@ -490,7 +490,7 @@ function answerDropoff(hit: SliceHit | null): AskAnswer {
   const largest = byCount[0];
   const bankIndex = ranked.findIndex((item) => item.stage.stage_name === "bank_connection_started");
   const paragraphs = [
-    `On ${scope}, the highest step_drop_off_rate is ${formatPercent(top.row.metric_value)} at ${labelStage(top.stage.stage_name)}. ${formatCount(top.row.numerator)} of ${formatCount(top.row.denominator)} applications that reached that stage did not reach ${nextStageLabel(top.stage)}.`,
+    `On ${scope}, the highest step drop-off is ${formatPercent(top.row.metric_value)} at ${labelStage(top.stage.stage_name)}. ${formatCount(top.row.numerator)} of ${formatCount(top.row.denominator)} applications that reached that stage did not reach ${nextStageLabel(top.stage)}.`,
   ];
   if (largest.stage.stage_name !== top.stage.stage_name) {
     paragraphs.push(
@@ -526,7 +526,7 @@ function answerDropoff(hit: SliceHit | null): AskAnswer {
     heading: "Where applicants drop off",
     paragraphs,
     table: {
-      caption: `step_drop_off_rate on ${scope}. Reached is the denominator. Did not continue is the numerator.`,
+      caption: `Step drop-off on ${scope}. Reached is the denominator; did not continue is the numerator.`,
       columns: ["Stage", "Reached", "Did not continue", "Drop-off"],
       rows: snapshot.stages.flatMap((stage) => {
         const row = metric("step_drop_off_rate", slice, value, stage.stage_name);
@@ -550,13 +550,13 @@ function answerLongest(): AskAnswer {
         left.slice_value.localeCompare(right.slice_value),
     );
   if (rows.length === 0) {
-    return refuse("missing_decision_time", "median_time_to_decision is not published. No figure is filled in.");
+    return refuse("missing_decision_time", "Median decision time is not published. No figure is filled in.");
   }
   const top = rows[0];
   const sameSliceOther = rows.find((row) => row.slice_name === top.slice_name && row.slice_value !== top.slice_value);
   const nextOtherSlice = rows.find((row) => row.slice_name !== top.slice_name);
   const paragraphs = [
-    `The longest median_time_to_decision in product_metrics is ${formatMinutes(top.metric_value)} on ${labelSlice(top.slice_name)} · ${labelValue(top.slice_name, top.slice_value)}. Denominator ${formatCount(top.denominator)}. Population: ${top.population}.`,
+    `The longest median decision time is ${formatMinutes(top.metric_value)} on ${labelSlice(top.slice_name)} · ${labelValue(top.slice_name, top.slice_value)}. Denominator ${formatCount(top.denominator)}. Population: ${top.population}.`,
   ];
   if (sameSliceOther) {
     paragraphs.push(
@@ -604,7 +604,7 @@ function answerFundingDecline(): AskAnswer {
   if (series.length < 2) {
     return refuse(
       "missing_months",
-      "The started_month slice does not have two months of funding conversion. No decline is filled in.",
+      "The monthly view does not have two months of funding conversion. No decline is filled in.",
     );
   }
   let worst = { from: series[0], to: series[1], delta: valueOf(series[1].approvedToFunded) - valueOf(series[0].approvedToFunded) };
@@ -616,17 +616,17 @@ function answerFundingDecline(): AskAnswer {
   const last = series[series.length - 1];
   const paragraphs = [
     "The export can show how funding conversion moved. It does not store a cause, so this answer does not add one.",
-    `Approved-to-funded conversion is approved_to_funded_rate, funded divided by approved. From ${first.label} to ${last.label} it moves from ${formatPercent(first.approvedToFunded.metric_value)} to ${formatPercent(last.approvedToFunded.metric_value)}.`,
+    `Approved-to-funded conversion is funded divided by approved. From ${first.label} to ${last.label} it moves from ${formatPercent(first.approvedToFunded.metric_value)} to ${formatPercent(last.approvedToFunded.metric_value)}.`,
   ];
   if (worst.delta < 0) {
     paragraphs.push(
       `The largest month-to-month drop is ${worst.from.label} to ${worst.to.label}: ${formatPercent(worst.from.approvedToFunded.metric_value)} to ${formatPercent(worst.to.approvedToFunded.metric_value)} (${formatSignedPp(worst.delta * 100)}).`,
     );
     paragraphs.push(
-      `On that same step, approved_to_contracted_rate moves from ${formatPercent(worst.from.approvedToContracted.metric_value)} to ${formatPercent(worst.to.approvedToContracted.metric_value)}, and contracted_to_funded_rate moves from ${formatPercent(worst.from.contractedToFunded.metric_value)} to ${formatPercent(worst.to.contractedToFunded.metric_value)}. Those are the published component rates, not a reason code.`,
+      `On that same step, approved-to-contracted conversion moves from ${formatPercent(worst.from.approvedToContracted.metric_value)} to ${formatPercent(worst.to.approvedToContracted.metric_value)}, and contracted-to-funded conversion moves from ${formatPercent(worst.from.contractedToFunded.metric_value)} to ${formatPercent(worst.to.contractedToFunded.metric_value)}. Those comparisons do not explain the cause.`,
     );
   } else {
-    paragraphs.push("approved_to_funded_rate does not fall between consecutive months in this window.");
+    paragraphs.push("Approved-to-funded conversion does not fall between consecutive months in this window.");
   }
   paragraphs.push(
     `Approval rate moves from ${formatPercent(first.approval.metric_value)} in ${first.label} to ${formatPercent(last.approval.metric_value)} in ${last.label}. Funding rate, funded divided by started, moves from ${formatPercent(first.funding.metric_value)} to ${formatPercent(last.funding.metric_value)}.`,
@@ -638,7 +638,7 @@ function answerFundingDecline(): AskAnswer {
     heading: "Funding conversion by start month",
     paragraphs,
     table: {
-      caption: "started_month rows used above. Funding rate is funded / started. Approved to funded is funded / approved.",
+      caption: "Monthly figures used above. Funding rate is funded / started. Approved to funded is funded / approved.",
       columns: ["Month", "Metric", "Value", "Numerator", "Denominator"],
       rows: cited.map((row) => [
         labelValue(row.slice_name, row.slice_value),
@@ -670,7 +670,7 @@ function answerManual(): AskAnswer {
   const autoCount = metric("decided_applications", "underwriting_path", "auto");
   const share = metric("manual_review_rate", "overall", "all");
   if (!manual || !auto || manual.metric_value == null || auto.metric_value == null || !share || share.metric_value == null) {
-    return refuse("missing_manual", "The underwriting_path comparison is not published. No figure is filled in.");
+    return refuse("missing_manual", "The underwriting path comparison is not published. No figure is filled in.");
   }
   return {
     status: "answered",
@@ -678,11 +678,11 @@ function answerManual(): AskAnswer {
     heading: "Manual review and decision time",
     paragraphs: [
       `median_time_to_decision on the manual path is ${formatMinutes(manual.metric_value)}, denominator ${formatCount(manual.denominator ?? manualCount?.metric_value ?? null)}. On the auto path it is ${formatMinutes(auto.metric_value)}, denominator ${formatCount(auto.denominator ?? autoCount?.metric_value ?? null)}.`,
-      `On the portfolio, manual_review_rate is ${formatPercent(share.metric_value)} (${formatCount(share.numerator)} of ${formatCount(share.denominator)}). Population: ${share.population}.`,
+      `On the portfolio, the manual review rate is ${formatPercent(share.metric_value)} (${formatCount(share.numerator)} of ${formatCount(share.denominator)}). Population: ${share.population}.`,
       "This is the published comparison of medians. The export does not store a cause. Decision SLA attainment is unshipped, so this answer does not compute an attainment percent.",
     ],
     table: {
-      caption: "underwriting_path medians, plus the portfolio manual review share.",
+      caption: "Underwriting path medians and the portfolio manual review share.",
       columns: ["Slice", "Value", "Metric", "Value published", "Denominator"],
       rows: [manual, auto, share].map((row) => [
         labelSlice(row.slice_name),
@@ -734,7 +734,7 @@ function answerExperiment(): AskAnswer {
     );
   }
   paragraphs.push(
-    `product_decision is ${snapshot.product_decision ?? "null"}. This answer does not select Ship, Iterate, or Do not ship.`,
+    "No product decision has been recorded. This answer does not select Ship, Iterate, or Do not ship.",
   );
   return {
     status: "answered",
@@ -742,31 +742,31 @@ function answerExperiment(): AskAnswer {
     heading: "Bank-connection experiment",
     paragraphs,
     table: {
-      caption: "fct_experiment_results. The primary population is applications that start bank connection.",
+      caption: "Experiment results. The primary population is applications that start bank connection.",
       columns: EXPERIMENT_COLUMNS,
       rows: rows.map(experimentCells),
     },
     sql: EXPERIMENT_SQL,
     compiledSql: snapshot.experiment_sql,
-    compiledSqlLabel: "Compiled SQL for fct_experiment_results",
+    compiledSqlLabel: "Compiled experiment query",
   };
 }
 
 function answerGuardrails(): AskAnswer {
   const rows = experimentRows().filter((row) => row.metric_role === "guardrail");
   if (rows.length === 0) {
-    return refuse("missing_guardrail", "fct_experiment_results has no guardrail rows. No figure is filled in.");
+    return refuse("missing_guardrail", "No experiment guardrail results are published. No figure is filled in.");
   }
   const paragraphs = [
     "Guardrails use the same estimate and interval as the primary metric. They are not a success criterion. The export has no pass or fail flag and no numeric margin for approximately unchanged.",
   ];
   for (const row of rows) {
     paragraphs.push(
-      `${labelMetric(row.metric_name)} (${row.population}): control ${formatMetric(row.control_value, row.unit)}, treatment ${formatMetric(row.treatment_value, row.unit)}, difference ${formatDifference(row)}, 95% interval ${formatInterval(row)}, p-value ${formatP(row.p_value)}, null_rejected_at_alpha ${yesNo(row.null_rejected_at_alpha)}.`,
+      `${labelMetric(row.metric_name)} (${row.population}): control ${formatMetric(row.control_value, row.unit)}, treatment ${formatMetric(row.treatment_value, row.unit)}, difference ${formatDifference(row)}, 95% interval ${formatInterval(row)}, p-value ${formatP(row.p_value)}, statistically significant at 5%: ${yesNo(row.null_rejected_at_alpha)}.`,
     );
   }
   if (rows.some((row) => row.metric_name === "median_time_to_submit")) {
-    paragraphs.push("median_time_to_submit is conditional on submitting. A rejected null is the alpha test. It is not a ship label.");
+    paragraphs.push("Median submission time is measured only among submitted applications. Statistical significance is not a launch recommendation.");
   }
   return {
     status: "answered",
@@ -774,13 +774,13 @@ function answerGuardrails(): AskAnswer {
     heading: "Experiment guardrails",
     paragraphs,
     table: {
-      caption: "Guardrail rows from fct_experiment_results.",
+      caption: "Experiment guardrail results.",
       columns: EXPERIMENT_COLUMNS,
       rows: rows.map(experimentCells),
     },
     sql: EXPERIMENT_GUARDRAIL_SQL,
     compiledSql: snapshot.experiment_sql,
-    compiledSqlLabel: "Compiled SQL for fct_experiment_results",
+    compiledSqlLabel: "Compiled experiment query",
   };
 }
 
@@ -796,9 +796,9 @@ function answerGrain(): AskAnswer {
     intent: "grain",
     heading: "Bank-connection denominator",
     paragraphs: [
-      `The primary metric is ${snapshot.primary_metric}. The population on the export is ${snapshot.primary_population}.`,
-      `On the portfolio, bank_connection_completion_rate is ${formatPercent(completion.metric_value)} (${formatCount(completion.numerator)} / ${formatCount(completion.denominator)}). Population: ${completion.population}.`,
-      `bank_connection_start_rate is a different metric: ${formatPercent(start.metric_value)} (${formatCount(start.numerator)} / ${formatCount(start.denominator)}). Population: ${start.population}.`,
+      `The primary measure is ${labelMetric(snapshot.primary_metric).toLowerCase()}. Its population is ${snapshot.primary_population}.`,
+      `For the portfolio, bank connection completion is ${formatPercent(completion.metric_value)} (${formatCount(completion.numerator)} / ${formatCount(completion.denominator)}). Population: ${completion.population}.`,
+      `Bank connection start is a different measure: ${formatPercent(start.metric_value)} (${formatCount(start.numerator)} / ${formatCount(start.denominator)}). Population: ${start.population}.`,
       `The experiment primary row uses the completion population. Control denominator ${formatCount(primary.n_control)}, treatment denominator ${formatCount(primary.n_treatment)}. Assigned and outside that population: control ${formatCount(primary.n_assigned_outside_population_control)}, treatment ${formatCount(primary.n_assigned_outside_population_treatment)}.`,
     ],
     table: {
@@ -869,10 +869,10 @@ function answerDeviceChannel(q: string, device: SliceHit, channel: SliceHit): As
   const deviceLabel = `${labelSlice(device.slice)} · ${labelValue(device.slice, device.value)}`;
   const channelLabel = `${labelSlice(channel.slice)} · ${labelValue(channel.slice, channel.value)}`;
   const paragraphs = [
-    `product_metrics keeps ${labelSlice(device.slice)} and ${labelSlice(channel.slice)} as separate slices. There is no combined row. The figures below are ${deviceLabel} and ${channelLabel} on their own. Neither figure is the intersection.`,
+    `The published metrics keep ${labelSlice(device.slice)} and ${labelSlice(channel.slice)} separate. There is no combined row. The figures below are ${deviceLabel} and ${channelLabel} on their own. Neither figure is the intersection.`,
   ];
   if (channel.value === "paid_search") {
-    paragraphs.push("Paid search is present as acquisition_channel = paid_search.");
+    paragraphs.push("Paid search is available as a channel on its own.");
   }
   const tableRows: string[][] = [];
   if (alias) {
@@ -895,12 +895,12 @@ function answerDeviceChannel(q: string, device: SliceHit, channel: SliceHit): As
       const started = metric("applications_started", hit.slice, hit.value);
       const label = `${labelSlice(hit.slice)} · ${labelValue(hit.slice, hit.value)}`;
       if (ranked.length === 0 || started?.metric_value == null) {
-        paragraphs.push(`${label} does not have a published step_drop_off_rate series.`);
+        paragraphs.push(`${label} does not have a published step drop-off series.`);
         continue;
       }
       const top = ranked[0];
       paragraphs.push(
-        `${label} starts at ${formatCount(started.metric_value)}. The highest step_drop_off_rate is ${formatPercent(top.row.metric_value)} at ${labelStage(top.stage.stage_name)} (${formatCount(top.row.numerator)} of ${formatCount(top.row.denominator)}).`,
+        `${label} starts at ${formatCount(started.metric_value)}. The highest step drop-off is ${formatPercent(top.row.metric_value)} at ${labelStage(top.stage.stage_name)} (${formatCount(top.row.numerator)} of ${formatCount(top.row.denominator)}).`,
       );
       for (const item of ranked) {
         tableRows.push([
@@ -957,7 +957,7 @@ function answerMetric(name: string, hit: SliceHit | null): AskAnswer {
       `${labelMetric(name)} on ${scopeLabel(hit)} is ${formatMetric(row.metric_value, row.unit)}.${fraction} Population: ${row.population}.`,
     ],
     table: {
-      caption: "The product_metrics row for this answer.",
+      caption: "The published metric for this answer.",
       columns: ["Metric", "Slice", "Value", "Published", "Numerator", "Denominator"],
       rows: [[
         labelMetric(row.metric_name),

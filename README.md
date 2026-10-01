@@ -10,7 +10,7 @@ Product analytics for a synthetic auto-loan application. The question is where q
 
 ## In this repository
 
-Phase 1 is the design package:
+The repository contains:
 
 - [Architecture](docs/architecture.md) — stack diagram, trade-offs, decision log
 - [Analytical spec](specs/analytical-spec.md) — lifecycle, metrics, experiment, seeded signals
@@ -45,7 +45,7 @@ make data
 
 `make data` replaces the Parquet files and runs the sanity checks. Column rules, the seed, and the seeded processes are in [docs/data-generation.md](docs/data-generation.md).
 
-These tables are not a lender's book of record. Do not treat a rate in the files as a measured business result until EDA is written.
+These tables are not a lender's book of record. The [analytical readout](docs/case-study.md) describes the synthetic observations and their limitations.
 
 ## Governed models
 
@@ -68,7 +68,7 @@ make dbt-doctor
 
 What each command does, and which tools were left unwired, is in [docs/dbt-tooling-trial.md](docs/dbt-tooling-trial.md). Column descriptions, `make pre-commit-install`, and the pull-request workflow are in [docs/dbt-quality.md](docs/dbt-quality.md).
 
-`product_metrics` is the metric table. The primary experiment metric remains `bank_connection_completion_rate` among applications that start bank connection. The marts do not label a segment, a period, or a ship decision. EDA still has to read them.
+`product_metrics` is the metric table. The primary experiment metric remains `bank_connection_completion_rate` among applications that start bank connection. The marts do not label a segment, a period, or a ship decision.
 
 ## Dashboard
 
@@ -78,10 +78,12 @@ make web-install
 make web-dev
 ```
 
-Overview, Application Funnel, Operations, Experiment, and Ask LendFlow at `/ask`. A formal EDA notebook is a later contract.
+Overview, Application Funnel, Operations, Experiment, and Ask LendFlow at `/ask`.
 
 Ask LendFlow matches a fixed question list to `product_metrics` and `fct_experiment_results`. It does not call a model provider. Local run and the Vercel path are in [docs/dashboard.md](docs/dashboard.md).
 
-## Not built yet
+## Verification
 
-A formal EDA notebook is a later contract.
+`make check` validates the synthetic source contracts. `make dbt-build` runs the models and dbt tests. `make dbt-export` regenerates the committed dashboard snapshot; CI fails when it differs. In `web/`, `npm test` checks curated-answer boundaries and `npm run build` checks the production application.
+
+The descriptive readout and interface review are documented in [case-study.md](docs/case-study.md) and [final-review.md](docs/final-review.md). Formal sensitivity analysis, guardrail tolerances, and SLA limits remain open. The interface reports the observed metrics without declaring a ship decision.

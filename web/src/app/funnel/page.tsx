@@ -1,9 +1,9 @@
 "use client";
 
 import { Note, Section } from "@/components/bits";
-import { ChannelChart, DropOffChart, PairChart, VolumeChart } from "@/components/charts";
+import { ChannelChart, ConversionFunnel, DropOffChart, PairChart } from "@/components/charts";
 import { useSlice } from "@/components/shell";
-import { formatCount, formatMetric, formatPercent } from "@/lib/format";
+import { formatCount, formatMetric, formatMinutes, formatPercent } from "@/lib/format";
 import {
   FUNDING_PATH,
   bankConnectionPairs,
@@ -22,8 +22,8 @@ export default function FunnelPage() {
   const path = FUNDING_PATH.map((name) => funnelStep(name, slice, value));
   const work = funnelStep("identity_verification_started", slice, value);
   const volume = path.filter((step) => step.reached != null).map((step) => ({
-    label: step.label,
-    reached: step.reached ?? 0,
+    name: step.label,
+    value: step.reached ?? 0,
   }));
   const drops = [...path, work]
     .filter((step) => step.dropOff != null)
@@ -35,30 +35,31 @@ export default function FunnelPage() {
     slice === "overall" ? "the portfolio" : `${labelSlice(slice).toLowerCase()} · ${labelValue(slice, value)}`;
 
   return (
-    <article>
-      <p className="text-xs uppercase tracking-[0.16em] text-copper">02 — Application funnel</p>
-      <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">Where is the friction?</h1>
+    <article className="page-content">
+      <p className="eyebrow">Application funnel</p>
+      <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">Where applicants leave.</h1>
       <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
-        Step volume, conversion, drop-off, median completer time, and error rate for {sliceText}. Drop-off
-        is 1 minus step conversion among applications that reached the stage. Median time is among
-        applications that reach the next stage.
+        Follow {sliceText} from application start to funding. Compare the stage losses, then look at bank connection by device and browser.
       </p>
 
-      <Section kicker="Volume" title="Reached counts along the funding path">
-        <div className="rounded-2xl border border-line bg-card p-4">
-          <VolumeChart data={volume} />
+      <Section kicker="Selected view" title="The path to funding" lede="Bar length is the share of applications started. Labels show the number reaching each stage.">
+        <div className="data-panel p-4 sm:p-6">
+          {volume.length >= 2 ? <ConversionFunnel data={volume} /> : <p className="text-sm text-muted">No funnel data for this filter.</p>}
         </div>
+        <p className="mt-3 text-xs leading-5 text-muted">Approval is an outcome branch. The decline and referral counts appear below; the reduction after submission is not all abandonment.</p>
       </Section>
 
-      <Section kicker="Drop-off" title="Share that does not reach the next stage">
-        <div className="rounded-2xl border border-line bg-card p-4">
+      <Section kicker="Selected view" title="Loss at each handoff" lede="Share of applicants reaching a stage who do not reach its next stage. Sorted from highest to lowest.">
+        <div className="data-panel p-4 sm:p-6">
           <DropOffChart data={drops} />
         </div>
       </Section>
 
-      <Section kicker="Scorecard" title="One row per stage">
-        <div className="overflow-x-auto rounded-2xl border border-line bg-card">
-          <table className="min-w-full text-left text-sm">
+      <Section kicker="Stage detail" title="The complete scorecard">
+        <details className="data-panel p-4">
+          <summary className="text-sm font-semibold">Counts, conversion, time, and recorded errors</summary>
+        <div className="table-scroll mt-4">
+          <table className="data-table min-w-full text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-muted">
               <tr>
                 <th className="px-3 py-3 font-medium">Stage</th>
@@ -81,7 +82,7 @@ export default function FunnelPage() {
                     <td className="num px-3 py-2 text-right">{formatPercent(step.conversion)}</td>
                     <td className="num px-3 py-2 text-right">{formatPercent(step.dropOff)}</td>
                     <td className="num px-3 py-2 text-right">
-                      {step.durationMinutes == null ? "—" : `${step.durationMinutes.toFixed(1)} min`}
+                      {formatMinutes(step.durationMinutes)}
                     </td>
                     <td className="num px-3 py-2 text-right">
                       {step.errorDefined ? formatPercent(step.errorRate) : "—"}
@@ -92,9 +93,10 @@ export default function FunnelPage() {
             </tbody>
           </table>
         </div>
+        </details>
         <div className="mt-3">
           <Note>
-            error_rate is blank on stages with no failure event. A blank cell is undefined, and it is not
+            Error rate is blank on stages with no recorded failure event. A blank cell is undefined, and it is not
             zero. Identity verification started is a work stage between bank connected and identity verified.
           </Note>
         </div>
@@ -116,11 +118,11 @@ export default function FunnelPage() {
               value,
             );
             return (
-              <article key={name} className="rounded-2xl border border-line bg-card p-4">
-                <p className="text-xs uppercase tracking-wide text-muted">{name}</p>
+              <article key={name} className="kpi">
+                <p className="kpi-label capitalize">{name}</p>
                 <p className="num mt-2 font-display text-3xl">{formatMetric(rate?.metric_value, "proportion")}</p>
                 <p className="num mt-1 text-sm text-muted">{formatCount(count?.metric_value ?? null)} applications</p>
-                <p className="mt-2 text-xs text-muted">{rate?.population}</p>
+                <p className="mt-2 text-xs text-muted">Of decided applications</p>
               </article>
             );
           })}
@@ -130,23 +132,19 @@ export default function FunnelPage() {
       <Section
         kicker="Portfolio cut"
         title="Bank connection by device and browser"
-        lede="device_browser is device_type and browser joined with a pipe. Completion and failure incidence both use applications that start bank connection. This cut is the portfolio. It does not cross with the page filter."
+        lede="Both rates use bank connection starters. A recorded failure can be followed by completion, so the rates are not complements. Portfolio comparison; filters do not apply."
       >
-        <div className="rounded-2xl border border-line bg-card p-4">
-          <div className="mb-2 flex gap-3 text-sm">
-            <span className="text-pine">Completion</span>
-            <span className="text-copper">Failure incidence</span>
-          </div>
+        <div className="data-panel p-4 sm:p-6">
           <PairChart data={pairs} />
         </div>
       </Section>
 
       <Section
         kicker="Portfolio cut"
-        title="Channel start volume and completion"
-        lede="applications_started and application_completion_rate on acquisition_channel. Start volume and completion are separate metrics."
+        title="Acquisition volume and submission"
+        lede="The same channels, in the same order, on two separate scales. Portfolio comparison; filters do not apply."
       >
-        <div className="rounded-2xl border border-line bg-card p-4">
+        <div className="data-panel p-4 sm:p-6">
           <ChannelChart data={channels} active={slice === "acquisition_channel" ? value : null} />
         </div>
       </Section>
