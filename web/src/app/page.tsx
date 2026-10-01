@@ -96,11 +96,11 @@ export default function OverviewPage() {
       <Section
         kicker="Conversion funnel"
         title="From application start to funding"
-        lede="The funnel narrows with the number of applications reaching each stage. It follows the selected filter."
+        lede="Each bar shows the share of applications reaching that stage. Counts appear on the bars and follow the selected filter."
       >
         <div className="data-panel p-5 lg:p-7">
           {chartRows.length >= 2 ? <ConversionFunnel data={chartRows} /> : <p className="text-sm text-muted">No funnel data for this filter.</p>}
-          <ol className="sr-only" aria-label="Application stages and conversion rates">
+          <ol className="sr-only" aria-label="Application stage conversion rates">
             {funnel.map((stage) => (
               <li key={stage.name}>{stage.name}: {formatCount(stage.value)} applications. {stage.rate == null ? stage.basis : `${formatPercent(stage.rate)} ${stage.basis}`}.</li>
             ))}

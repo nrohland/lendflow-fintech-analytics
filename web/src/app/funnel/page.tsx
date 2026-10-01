@@ -1,7 +1,7 @@
 "use client";
 
 import { Note, Section } from "@/components/bits";
-import { ChannelChart, DropOffChart, PairChart, VolumeChart } from "@/components/charts";
+import { ChannelChart, ConversionFunnel, DropOffChart, PairChart } from "@/components/charts";
 import { useSlice } from "@/components/shell";
 import { formatCount, formatMetric, formatPercent } from "@/lib/format";
 import {
@@ -22,8 +22,8 @@ export default function FunnelPage() {
   const path = FUNDING_PATH.map((name) => funnelStep(name, slice, value));
   const work = funnelStep("identity_verification_started", slice, value);
   const volume = path.filter((step) => step.reached != null).map((step) => ({
-    label: step.label,
-    reached: step.reached ?? 0,
+    name: step.label,
+    value: step.reached ?? 0,
   }));
   const drops = [...path, work]
     .filter((step) => step.dropOff != null)
@@ -44,9 +44,9 @@ export default function FunnelPage() {
         applications that reach the next stage.
       </p>
 
-      <Section kicker="Volume" title="Reached counts along the funding path">
+      <Section kicker="Volume" title="Reached counts along the funding path" lede="Each bar shows the share of applications that reaches that stage; the number is the application count. Scroll sideways to see later stages on smaller screens.">
         <div className="data-panel p-4">
-          <VolumeChart data={volume} />
+          {volume.length >= 2 ? <ConversionFunnel data={volume} /> : <p className="text-sm text-muted">No funnel data for this filter.</p>}
         </div>
       </Section>
 

@@ -7,9 +7,6 @@ import {
   Cell,
   ComposedChart,
   ErrorBar,
-  Funnel,
-  FunnelChart,
-  LabelList,
   Line,
   LineChart,
   ReferenceLine,
@@ -31,31 +28,31 @@ const tooltipStyle = {
 const axisTick = { fill: "#596473", fontSize: 12 };
 
 export function ConversionFunnel({ data }: { data: { name: string; value: number }[] }) {
-  const colors = ["#c4e8c7", "#89d994", "#287b57", "#226f54"];
+  const first = data[0]?.value ?? 0;
+  const width = Math.max(560, data.length * 104);
   return (
-    <div className="h-80 w-full sm:h-[23rem]" aria-hidden="true">
-      <ResponsiveContainer width="100%" height="100%">
-        <FunnelChart margin={{ top: 6, right: 8, bottom: 6, left: 8 }}>
-          <Funnel data={data} dataKey="value" nameKey="name" lastShapeType="rectangle" isAnimationActive={false}>
-            {data.map((row, index) => <Cell key={row.name} fill={colors[index] ?? colors[colors.length - 1]} stroke="#ffffff" strokeWidth={2} />)}
-            <LabelList content={(props) => {
-              const row = typeof props.index === "number" ? data[props.index] : null;
-              const box = props.viewBox as { x?: number; y?: number; width?: number; height?: number; upperWidth?: number; lowerWidth?: number } | undefined;
-              if (!row || box?.x == null || box.y == null || box.width == null || box.height == null) return <g />;
-              const compact = Math.min(box.upperWidth ?? box.width, box.lowerWidth ?? box.width) < 90;
-              const x = box.x + box.width / 2;
-              const y = box.y + box.height / 2;
-              const fill = props.index != null && props.index >= 2 ? "#ffffff" : "#193d30";
-              return (
-                <text x={x} y={y - (compact ? 6 : 8)} textAnchor="middle" fill={fill} fontFamily="var(--font-inter), sans-serif" fontWeight={700}>
-                  <tspan x={x} fontSize={compact ? 9 : 12}>{row.name}</tspan>
-                  <tspan x={x} dy={compact ? 14 : 20} fontSize={compact ? 10 : 16}>{formatCount(row.value)}</tspan>
-                </text>
-              );
-            }} />
-          </Funnel>
-        </FunnelChart>
-      </ResponsiveContainer>
+    <div className="overflow-x-auto pb-1" role="img" aria-label={`Application funnel: ${data.map((row) => `${row.name}, ${formatCount(row.value)} applications`).join("; ")}`}>
+      <div className="funnel-chart" style={{ minWidth: width }}>
+        <div className="funnel-axis" aria-hidden="true">
+          <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
+        </div>
+        <ol className="funnel-stages" aria-hidden="true">
+          {data.map((row) => {
+            const percentage = first > 0 ? Math.min(100, Math.max(0, row.value / first * 100)) : 0;
+            return (
+              <li key={row.name} className="funnel-stage">
+                <div className="funnel-track">
+                  <div className="funnel-fill" style={{ height: `${percentage}%` }} />
+                  <span className={`funnel-value ${percentage < 18 ? "funnel-value-above" : ""}`} style={{ bottom: percentage < 18 ? `calc(${percentage}% + 7px)` : `calc(${percentage}% - 28px)` }}>
+                    {formatCount(row.value)}
+                  </span>
+                </div>
+                <span className="funnel-label">{row.name}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
     </div>
   );
 }
@@ -88,22 +85,6 @@ export function TrendChart({
           <Line type="monotone" dataKey="approval" name="approval" stroke="#53627b" strokeWidth={2} dot={false} />
           <Line type="monotone" dataKey="funding" name="funding" stroke="#226f54" strokeWidth={2} dot={false} />
         </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-export function VolumeChart({ data }: { data: { label: string; reached: number }[] }) {
-  return (
-    <div className="h-80 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-          <CartesianGrid stroke="#dce4e1" horizontal={false} />
-          <XAxis type="number" tick={axisTick} axisLine={false} tickLine={false} tickFormatter={(value: number) => formatCount(value)} />
-          <YAxis type="category" dataKey="label" width={168} tick={axisTick} axisLine={false} tickLine={false} />
-          <Tooltip contentStyle={tooltipStyle} formatter={(value) => [formatCount(Number(value)), "Reached"]} />
-          <Bar dataKey="reached" fill="#226f54" radius={[0, 4, 4, 0]} />
-        </BarChart>
       </ResponsiveContainer>
     </div>
   );
