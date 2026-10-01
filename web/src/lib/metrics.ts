@@ -289,7 +289,8 @@ export function pathRows() {
 }
 
 export function riskRows() {
-  return distinctSliceValues("risk_band", "approval_rate").map((value) => ({
+  const order = ["low", "moderate", "elevated", "high"];
+  return distinctSliceValues("risk_band", "approval_rate").sort((left, right) => order.indexOf(left) - order.indexOf(right)).map((value) => ({
     value,
     label: labelValue("risk_band", value),
     decided: metric("decided_applications", "risk_band", value)?.metric_value ?? null,

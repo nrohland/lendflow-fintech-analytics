@@ -5,14 +5,8 @@ import { useState } from "react";
 import { Section } from "@/components/bits";
 import { ConversionFunnel, TrendChart } from "@/components/charts";
 import { useSlice } from "@/components/shell";
-import { formatMinutes, formatPercent, formatSignedPp } from "@/lib/format";
-import {
-  labelSlice,
-  labelValue,
-  metric,
-  periodSeries,
-  primaryExperiment,
-} from "@/lib/metrics";
+import { formatCount, formatInterval, formatMinutes, formatPercent, formatSignedPp } from "@/lib/format";
+import { labelSlice, labelValue, metric, periodSeries, primaryExperiment } from "@/lib/metrics";
 
 export default function OverviewPage() {
   const { slice, value } = useSlice();
@@ -21,188 +15,98 @@ export default function OverviewPage() {
   const bankDrop = metric("step_drop_off_rate", "overall", "all", "bank_connection_started");
   const fundedAfterApproval = metric("approved_to_funded_rate", "overall", "all");
   const experiment = primaryExperiment();
+  const selectedFunding = metric("funding_rate", slice, value);
   const funnel = [
-    { name: "Started", value: metric("applications_started", slice, value)?.metric_value ?? null, rate: null, basis: "Starting population" },
-    { name: "Submitted", value: metric("submitted_applications", slice, value)?.metric_value ?? null, rate: metric("application_completion_rate", slice, value)?.metric_value ?? null, basis: "of started" },
-    { name: "Approved", value: metric("approved_applications", slice, value)?.metric_value ?? null, rate: metric("approval_rate", slice, value)?.metric_value ?? null, basis: "of decided" },
-    { name: "Funded", value: metric("funded_applications", slice, value)?.metric_value ?? null, rate: metric("approved_to_funded_rate", slice, value)?.metric_value ?? null, basis: "of approved" },
+    { name: "Started", value: metric("applications_started", slice, value)?.metric_value ?? null },
+    { name: "Submitted", value: metric("submitted_applications", slice, value)?.metric_value ?? null },
+    { name: "Approved", value: metric("approved_applications", slice, value)?.metric_value ?? null },
+    { name: "Funded", value: metric("funded_applications", slice, value)?.metric_value ?? null },
   ];
   const chartRows = funnel.filter((row): row is typeof row & { value: number } => row.value != null);
-  const activeLabel =
-    slice === grain ? series.find((point) => point.value === value)?.label ?? null : null;
+  const activeLabel = slice === grain ? series.find((point) => point.value === value)?.label ?? null : null;
+  const scope = slice === "overall" ? "Portfolio" : `${labelSlice(slice)}: ${labelValue(slice, value)}`;
 
   return (
     <article className="page-content home-page">
       <div className="overview-hero">
-        <div className="relative z-10">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#b0eba1]">01 / Portfolio overview</p>
-          <h1 className="mt-5 max-w-3xl font-display text-5xl leading-[1.02] tracking-tight text-white sm:text-6xl">
-            Approval isn&apos;t the finish line. <em className="font-normal text-[#a6e986]">Funding is.</em>
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-[#dbe4e4]">
-            Are we funding the applications we approve? Explore the governed metrics for{" "}
-            {slice === "overall" ? "the portfolio" : `${labelSlice(slice).toLowerCase()} · ${labelValue(slice, value)}`}.
-          </p>
+        <div>
+          <p className="eyebrow text-[#c3d7cd]">Portfolio overview</p>
+          <h1 className="mt-4 font-display text-5xl leading-[1.06] tracking-tight text-white sm:text-6xl">From approval<br />to a funded loan.</h1>
+          <p className="mt-5 max-w-lg text-base leading-7 text-[#d7e4dd]">Approval isn&apos;t the finish line. Follow the application journey, find the handoffs that lose applicants, and review the bank connection test.</p>
         </div>
-        <div className="relative z-10 self-end border-l border-white/20 pl-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#b7c8ca]">Funded / started</p>
-          <p className="num mt-3 text-5xl font-semibold tracking-tight text-white">
-            {formatPercent(metric("funding_rate", slice, value)?.metric_value ?? null)}
-          </p>
-          <p className="mt-2 text-sm text-[#c1d1d1]">End-to-end funding rate</p>
+        <div className="hero-stat">
+          <p className="text-sm text-[#d7e4dd]">End-to-end funding rate</p>
+          <p className="num mt-2 text-6xl font-semibold tracking-tight text-[#a6e986]">{formatPercent(selectedFunding?.metric_value)}</p>
+          <p className="num mt-3 text-sm text-white">{formatCount(selectedFunding?.numerator)} funded / {formatCount(selectedFunding?.denominator)} started</p>
+          <p className="mt-2 text-xs text-[#c3d7cd]">{scope}</p>
         </div>
       </div>
 
-      <section className="mt-8" aria-labelledby="key-findings">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.13em] text-pine">The readout</p>
-            <h2 id="key-findings" className="mt-2 font-display text-3xl text-ink sm:text-4xl">Three findings to take away</h2>
+      <section className="readout" aria-labelledby="key-findings">
+        <div className="readout-heading">
+          <p className="eyebrow">The analysis</p>
+          <h2 id="key-findings" className="mt-2 font-display text-3xl">Where to focus</h2>
+          <p className="mt-3 text-sm leading-6 text-muted">Portfolio findings.<br />These stay fixed across filters.</p>
+        </div>
+        <div>
+          <Finding href="/funnel" title="Bank connection loses one in five starters" value={formatPercent(bankDrop?.metric_value)}
+            body={`${formatCount(bankDrop?.numerator)} of ${formatCount(bankDrop?.denominator)} bank connection starters do not complete it. Review the device and browser breakdown before assigning a cause.`} action="Locate the drop-off" />
+          <Finding href="/operations" title="Approval leaves a second conversion gap" value={formatPercent(fundedAfterApproval?.metric_value)}
+            body={`${formatCount(fundedAfterApproval?.numerator)} of ${formatCount(fundedAfterApproval?.denominator)} approved applications reach funding. Compare the decision paths and the steps after approval.`} action="Review the funding handoff" />
+          <div className="experiment-readout">
+            <div className="flex flex-wrap items-baseline justify-between gap-2"><h3 className="text-base font-semibold">The bank connection test</h3><strong className="num text-xl text-pine">{formatSignedPp(experiment.absolute_difference_pp)}</strong></div>
+            <p className="mt-2 text-sm leading-6 text-muted">Completion rises from {formatPercent(experiment.control_value)} to {formatPercent(experiment.treatment_value)}. The 95% interval is {formatInterval(experiment)}. Guardrail tolerances are still needed for a launch decision.</p>
+            <Link href="/experiment" className="text-link mt-3 inline-block">Read the experiment result</Link>
           </div>
-          <p className="text-xs text-muted">Portfolio-wide · These findings stay fixed when you change filters</p>
         </div>
-        <div className="mt-5 grid gap-3 lg:grid-cols-3">
-          <Insight
-            number="01"
-            label="A major handoff"
-            value={formatPercent(bankDrop?.metric_value)}
-            body={`${formatCount(bankDrop?.numerator ?? null)} of ${formatCount(bankDrop?.denominator ?? null)} applications that start bank connection do not complete it. This is a clear place to investigate friction.`}
-            href="/funnel"
-            action="Explore the funnel"
-          />
-          <Insight
-            number="02"
-            label="Approval to funding"
-            value={formatPercent(fundedAfterApproval?.metric_value)}
-            body={`${formatCount(fundedAfterApproval?.numerator ?? null)} of ${formatCount(fundedAfterApproval?.denominator ?? null)} approved applications reach funding. Approval alone misses this downstream gap.`}
-            href="/operations"
-            action="See what happens after approval"
-          />
-          <Insight
-            number="03"
-            label="Experiment signal"
-            value={formatSignedPp(experiment.absolute_difference_pp)}
-            body={`${formatPercent(experiment.control_value)} in control versus ${formatPercent(experiment.treatment_value)} in treatment among bank connection starters. Guardrail limits are still undefined.`}
-            href="/experiment"
-            action="Review the experiment"
-          />
-        </div>
-        <p className="mt-4 rounded-lg border-l-[3px] border-[#60b975] bg-pine-soft px-4 py-3 text-sm leading-6 text-ink">
-          <strong>Where to focus:</strong> investigate the bank connection handoff, then trace losses after approval.
-          The test result is promising, but guardrail limits are needed before a launch decision.
-        </p>
       </section>
 
-      <Section
-        kicker="Conversion funnel"
-        title="From application start to funding"
-        lede="Each bar shows the share of applications reaching that stage. Counts appear on the bars and follow the selected filter."
-      >
-        <div className="data-panel p-5 lg:p-7">
-          {chartRows.length >= 2 ? <ConversionFunnel data={chartRows} /> : <p className="text-sm text-muted">No funnel data for this filter.</p>}
-          <ol className="sr-only" aria-label="Application stage conversion rates">
-            {funnel.map((stage) => (
-              <li key={stage.name}>{stage.name}: {formatCount(stage.value)} applications. {stage.rate == null ? stage.basis : `${formatPercent(stage.rate)} ${stage.basis}`}.</li>
-            ))}
-          </ol>
-          <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-muted">
-            {funnel.slice(1).map((stage) => (
-              <span key={stage.name}><strong className="font-semibold text-ink">{stage.name}</strong> {formatPercent(stage.rate)} {stage.basis}</span>
-            ))}
-          </div>
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
-            <p className="text-sm text-muted">Median time to decision <span className="text-xs">· among decided applications</span></p>
-            <strong className="num text-lg font-semibold text-ink">{formatMinutes(metric("median_time_to_decision", slice, value)?.metric_value)}</strong>
-          </div>
+      <Section kicker={scope} title="The application journey" lede="Counts and share of applications started. Every stage follows the selected view.">
+        <div className="data-panel p-4 sm:p-6">
+          <ConversionFunnel data={chartRows} />
+          <dl className="metric-strip mt-5">
+            <div><dt>Submitted / started</dt><dd>{formatPercent(metric("application_completion_rate", slice, value)?.metric_value)}</dd></div>
+            <div><dt>Approved / decided</dt><dd>{formatPercent(metric("approval_rate", slice, value)?.metric_value)}</dd></div>
+            <div><dt>Funded / approved</dt><dd>{formatPercent(metric("approved_to_funded_rate", slice, value)?.metric_value)}</dd></div>
+            <div><dt>Median decision time</dt><dd>{formatMinutes(metric("median_time_to_decision", slice, value)?.metric_value)}</dd></div>
+          </dl>
         </div>
-        <p className="mt-3 text-xs leading-5 text-muted">The full stage-by-stage breakdown is on the Funnel page.</p>
+        <Link href="/funnel" className="text-link mt-3 inline-block">See all application stages</Link>
       </Section>
 
-      <section className="mt-14" aria-labelledby="explore-title">
-        <p className="text-xs font-bold uppercase tracking-[0.13em] text-pine">Explore the story</p>
-        <h2 id="explore-title" className="mt-2 font-display text-3xl text-ink sm:text-4xl">Where to go next</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-          Use the filters above to change the headline metrics. Sections marked “Portfolio” stay fixed so you can compare them with the wider picture.
-        </p>
-        <nav className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Explore the analysis">
-          <GuideLink href="/funnel" number="02" title="Funnel" description="Find where applicants leave." />
-          <GuideLink href="/operations" number="03" title="Operations" description="Compare decision and funding times." />
-          <GuideLink href="/experiment" number="04" title="Experiment" description="Read the test result and guardrails." />
-          <GuideLink href="/ask" number="05" title="Ask" description="Try a guided question about the data." />
-        </nav>
-      </section>
-
-      <Section
-        kicker="Portfolio trend"
-        title="Approval rate and funding rate"
-        lede="This portfolio trend is shown by month or week. The page filters above change the headline cards, but do not combine with this trend."
-      >
-        <div className="data-panel p-4">
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-copper">Approval rate</span>
-            <span className="text-pine">Funding rate</span>
-            <span className="ml-auto flex gap-1">
-              {(["started_month", "started_week"] as const).map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => setGrain(item)}
-                  aria-pressed={grain === item}
-                  className={`rounded-full px-3 py-1 ${
-                    grain === item ? "bg-ink text-paper" : "bg-paper text-muted"
-                  }`}
-                >
-                  {item === "started_month" ? "Month" : "Week"}
-                </button>
-              ))}
-            </span>
+      <Section kicker="Portfolio history" title="Approval and funding over time" lede="Approval uses decided applications; funding uses all starts. Both series are grouped by application start date.">
+        <div className="data-panel p-4 sm:p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted">Whole portfolio · page filters do not apply</p>
+            <div className="segmented" aria-label="Trend granularity">
+              {(["started_month", "started_week"] as const).map((item) => <button key={item} type="button" onClick={() => setGrain(item)} aria-pressed={grain === item}>{item === "started_month" ? "Monthly" : "Weekly"}</button>)}
+            </div>
           </div>
           <TrendChart data={series} activeLabel={activeLabel} />
         </div>
       </Section>
 
+      <nav className="analysis-guide" aria-label="Continue the analysis">
+        <p className="eyebrow">Continue the analysis</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Guide href="/funnel" title="Application funnel" description="Find the stage and the segment behind each loss." />
+          <Guide href="/operations" title="Operations" description="Compare decision paths and the funding clock." />
+          <Guide href="/experiment" title="Experiment" description="Assess the effect, uncertainty, and guardrails." />
+          <Guide href="/ask" title="Ask LendFlow" description="Look up an answer and inspect the supporting query." />
+        </div>
+      </nav>
     </article>
   );
 }
 
-function formatCount(value: number | null): string {
-  if (value == null) return "—";
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+function Finding({ href, title, value, body, action }: { href: string; title: string; value: string; body: string; action: string }) {
+  return <article className="finding">
+    <div className="flex flex-wrap items-baseline justify-between gap-3"><h3 className="text-base font-semibold">{title}</h3><strong className="num text-2xl font-semibold">{value}</strong></div>
+    <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+    <Link href={href} className="text-link mt-3 inline-block">{action}</Link>
+  </article>;
 }
 
-function Insight({ number, label, value, body, href, action }: {
-  number: string;
-  label: string;
-  value: string;
-  body: string;
-  href: string;
-  action: string;
-}) {
-  return (
-    <article className="data-panel flex h-full flex-col p-5">
-      <p className="text-xs font-bold uppercase tracking-[0.12em] text-pine">{number} / {label}</p>
-      <p className="num mt-4 text-4xl font-semibold tracking-tight text-ink">{value}</p>
-      <p className="mt-3 flex-1 text-sm leading-6 text-muted">{body}</p>
-      <Link href={href} className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-semibold text-pine hover:underline">
-        {action} <span aria-hidden="true">→</span>
-      </Link>
-    </article>
-  );
-}
-
-function GuideLink({ href, number, title, description }: {
-  href: string;
-  number: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <Link href={href} className="data-panel group block p-4 transition-colors hover:border-pine">
-      <span className="text-xs font-bold text-pine">{number}</span>
-      <span className="mt-2 flex items-center justify-between font-semibold text-ink">
-        {title} <span className="text-pine transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
-      </span>
-      <span className="mt-1 block text-xs leading-5 text-muted">{description}</span>
-    </Link>
-  );
+function Guide({ href, title, description }: { href: string; title: string; description: string }) {
+  return <Link href={href} className="guide-link"><span className="block text-sm font-semibold">{title}</span><span className="mt-2 block text-sm leading-6 text-muted">{description}</span></Link>;
 }

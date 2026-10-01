@@ -45,7 +45,7 @@ make data
 
 `make data` replaces the Parquet files and runs the sanity checks. Column rules, the seed, and the seeded processes are in [docs/data-generation.md](docs/data-generation.md).
 
-These tables are not a lender's book of record. Do not treat a rate in the files as a measured business result until EDA is written.
+These tables are not a lender's book of record. The [analytical readout](docs/case-study.md) describes the synthetic observations and their limitations.
 
 ## Governed models
 
@@ -86,4 +86,4 @@ Ask LendFlow matches a fixed question list to `product_metrics` and `fct_experim
 
 `make check` validates the synthetic source contracts. `make dbt-build` runs the models and dbt tests. `make dbt-export` regenerates the committed dashboard snapshot; CI fails when it differs. In `web/`, `npm test` checks curated-answer boundaries and `npm run build` checks the production application.
 
-Formal EDA, guardrail tolerances, and SLA limits remain open. The interface reports the observed metrics without declaring a ship decision.
+The descriptive readout and interface review are documented in [case-study.md](docs/case-study.md) and [final-review.md](docs/final-review.md). Formal sensitivity analysis, guardrail tolerances, and SLA limits remain open. The interface reports the observed metrics without declaring a ship decision.

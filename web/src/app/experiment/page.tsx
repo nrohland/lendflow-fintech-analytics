@@ -1,15 +1,8 @@
 "use client";
 
-import { Note, Section } from "@/components/bits";
+import { Section } from "@/components/bits";
 import { DifferenceChart, VariantChart } from "@/components/charts";
-import {
-  formatCount,
-  formatDifference,
-  formatInterval,
-  formatP,
-  formatPercent,
-  formatSignedPercent,
-} from "@/lib/format";
+import { formatCount, formatDifference, formatInterval, formatP, formatPercent, formatSignedPercent } from "@/lib/format";
 import { displayText, experimentRows, labelMetric, primaryExperiment, snapshot } from "@/lib/metrics";
 import type { ExperimentRow } from "@/lib/types";
 
@@ -17,222 +10,82 @@ export default function ExperimentPage() {
   const primary = primaryExperiment();
   const rows = experimentRows();
   const guardrails = rows.filter((row) => row.metric_role === "guardrail");
-  const proportions = rows.filter(
-    (row) => row.unit === "proportion" && row.absolute_difference_pp != null && row.ci_low != null && row.ci_high != null,
-  );
-  const selected = snapshot.product_decision;
-  const primaryAboveZero = primary.ci_low != null && primary.ci_low > 0 && (primary.absolute_difference ?? 0) > 0;
-  const primaryCoversZero =
-    primary.ci_low != null && primary.ci_high != null && primary.ci_low <= 0 && primary.ci_high >= 0;
-  const rejectedGuardrails = guardrails.filter((row) => row.null_rejected_at_alpha === true);
-
-  const variants = [
-    { label: "Control", rate: primary.control_value ?? 0 },
-    { label: "Treatment", rate: primary.treatment_value ?? 0 },
-  ];
-  const intervals = proportions.map((row) => ({
-    label: labelMetric(row.metric_name),
-    diff: row.absolute_difference_pp ?? 0,
-    error: [
-      (row.absolute_difference_pp ?? 0) - (row.ci_low ?? 0) * 100,
-      (row.ci_high ?? 0) * 100 - (row.absolute_difference_pp ?? 0),
-    ] as [number, number],
+  const intervals = rows.filter((row) => row.unit === "proportion" && row.absolute_difference_pp != null && row.ci_low != null && row.ci_high != null).map((row) => ({
+    label: labelMetric(row.metric_name), diff: row.absolute_difference_pp!,
+    error: [row.absolute_difference_pp! - row.ci_low! * 100, row.ci_high! * 100 - row.absolute_difference_pp!] as [number, number],
   }));
+  const variants = [{ label: "Control", rate: primary.control_value }, { label: "Treatment", rate: primary.treatment_value }];
+  return <article className="page-content">
+    <p className="eyebrow">Experiment</p>
+    <h1 className="mt-2 font-display text-4xl">A clearer bank connection step.</h1>
+    <p className="mt-3 text-muted">A shorter explanation of why bank connection is needed, tested against the current experience. The outcome is completion among applications that start bank connection.</p>
 
-  return (
-    <article className="page-content">
-      <p className="text-xs uppercase tracking-[0.16em] text-copper">04 — Experiment</p>
-      <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">
-        Did bank-connection clarity change completion?
-      </h1>
-      <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
-        The bank connection clarity test compares a shorter explanation with the current experience.
-        Its primary measure is {labelMetric(snapshot.primary_metric).toLowerCase()} among {displayText(snapshot.primary_population)}.
-      </p>
-
-      <Section kicker="Hypothesis" title="Shorter explanation at bank connection">
-        <p className="max-w-3xl text-sm leading-6 text-muted">
-          Treatment uses shorter copy that explains why bank connection is required and that income
-          verification is meant to be fast. Control keeps the current bank-connection experience. Every
-          application is assigned at application start. The estimand is the completion rate among
-          applications that start bank connection, treatment minus control. Applications that never start
-          are outside this metric.
-        </p>
-      </Section>
-
-      <Section kicker="Primary" title={labelMetric(primary.metric_name)}>
-        <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="data-panel p-4">
-            <VariantChart data={variants} />
+    <Section kicker="Primary result" title="Bank connection completion" lede="The treatment-control difference is measured in percentage points. Both completion rates use bank connection starters.">
+      <div className="data-panel p-4 sm:p-6">
+        <div className="experiment-result">
+          <VariantChart data={variants} />
+          <div>
+            <p className="text-sm text-muted">Treatment minus control</p>
+            <p className="num mt-2 text-5xl font-semibold tracking-tight text-pine">{formatDifference(primary)}</p>
+            <p className="mt-3 text-sm leading-6 text-muted">95% confidence interval: {formatInterval(primary)}.</p>
+            <dl className="result-stats mt-6">
+              <Stat label="Relative uplift" value={formatSignedPercent(primary.relative_uplift)} />
+              <Stat label="p-value" value={formatP(primary.p_value)} />
+              <Stat label="Control starters" value={formatCount(primary.n_control)} />
+              <Stat label="Treatment starters" value={formatCount(primary.n_treatment)} />
+            </dl>
           </div>
-          <dl className="grid content-start gap-3 sm:grid-cols-2">
-            <Stat label="Control" value={formatPercent(primary.control_value)} />
-            <Stat label="Treatment" value={formatPercent(primary.treatment_value)} />
-            <Stat label="Absolute difference" value={formatDifference(primary)} />
-            <Stat label="Relative uplift" value={formatSignedPercent(primary.relative_uplift)} />
-            <Stat label="95% interval" value={formatInterval(primary)} />
-            <Stat label="p-value" value={formatP(primary.p_value)} />
-            <Stat
-              label="Null rejected at 0.05"
-              value={primary.null_rejected_at_alpha == null ? "—" : primary.null_rejected_at_alpha ? "Yes" : "No"}
-            />
-            <Stat label="Test" value={primary.test_method.replaceAll("_", " ")} />
-          </dl>
         </div>
-        <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label="Assigned control" value={formatCount(primary.n_assigned_control)} />
-          <Stat label="Assigned treatment" value={formatCount(primary.n_assigned_treatment)} />
-          <Stat label="Started, control" value={formatCount(primary.n_control)} />
-          <Stat label="Started, treatment" value={formatCount(primary.n_treatment)} />
-          <Stat label="Completed, control" value={formatCount(primary.conversions_control)} />
-          <Stat label="Completed, treatment" value={formatCount(primary.conversions_treatment)} />
-          <Stat label="Never started, control" value={formatCount(primary.n_assigned_outside_population_control)} />
-          <Stat label="Never started, treatment" value={formatCount(primary.n_assigned_outside_population_treatment)} />
-        </dl>
-        <p className="mt-3 text-xs text-muted">
-          Population: {displayText(primary.population)}. Interval: {displayText(primary.interval_method)}. Significance level: {primary.alpha}.
-        </p>
-      </Section>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-muted">{primary.ci_low != null && primary.ci_low > 0 ? "The primary interval is above zero." : "Review the interval against zero."} A launch decision still needs guardrail tolerances.</p>
+    </Section>
 
-      <Section
-        kicker="All experiment metrics"
-        title="Difference and 95% interval"
-        lede="Differences compare treatment with control. Percentage measures use points; the median time measure uses minutes. Bars show 95% intervals."
-      >
-        <div className="data-panel p-4">
-          <DifferenceChart data={intervals} />
-        </div>
-        <div className="mt-4 overflow-x-auto data-panel">
-          <table className="data-table min-w-full text-left text-sm">
-            <thead className="text-xs uppercase tracking-wide text-muted">
-              <tr>
-                <th className="px-3 py-3 font-medium">Metric</th>
-                <th className="px-3 py-3 font-medium">Role</th>
-                <th className="px-3 py-3 text-right font-medium">Control</th>
-                <th className="px-3 py-3 text-right font-medium">Treatment</th>
-                <th className="px-3 py-3 text-right font-medium">Difference</th>
-                <th className="px-3 py-3 text-right font-medium">95% interval</th>
-                <th className="px-3 py-3 text-right font-medium">p-value</th>
-                <th className="px-3 py-3 text-right font-medium">Null rejected</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.metric_name} className="border-t border-line">
-                  <td className="px-3 py-2">
-                    <div>{labelMetric(row.metric_name)}</div>
-                    <div className="text-xs text-muted">{displayText(row.population)}</div>
-                  </td>
-                  <td className="px-3 py-2 capitalize text-muted">{row.metric_role}</td>
-                  <td className="num px-3 py-2 text-right">{formatMetricValue(row, row.control_value)}</td>
-                  <td className="num px-3 py-2 text-right">{formatMetricValue(row, row.treatment_value)}</td>
-                  <td className="num px-3 py-2 text-right">{formatDifference(row)}</td>
-                  <td className="num px-3 py-2 text-right">{formatInterval(row)}</td>
-                  <td className="num px-3 py-2 text-right">{formatP(row.p_value)}</td>
-                  <td className="px-3 py-2 text-right">
-                    {row.null_rejected_at_alpha == null ? "—" : row.null_rejected_at_alpha ? "Yes" : "No"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
+    <Section kicker="Effect estimates" title="How the other measures move" lede="Points are treatment-control differences; whiskers are 95% confidence intervals. Zero means no difference. Percentage measures are shown here; time is reported in the table.">
+      <div className="data-panel p-4 sm:p-6"><DifferenceChart data={intervals} /></div>
+      <details className="mt-4 data-panel p-4">
+        <summary className="text-sm font-semibold">All estimates, intervals, and tests</summary>
+        <div className="table-scroll mt-3"><table className="data-table w-full text-left text-sm">
+          <thead><tr>{["Metric", "Role", "Control", "Treatment", "Difference", "95% interval", "p-value"].map((heading, i) => <th key={heading} className={`p-3 ${i >= 2 ? "text-right" : ""}`}>{heading}</th>)}</tr></thead>
+          <tbody>{rows.map((row) => <tr key={row.metric_name}>
+            <td className="p-3"><div>{labelMetric(row.metric_name)}</div><p className="mt-1 text-xs text-muted">{displayText(row.population)}</p></td>
+            <td className="p-3 capitalize text-muted">{row.metric_role}</td>
+            <td className="num p-3 text-right">{formatMetricValue(row, row.control_value)}</td><td className="num p-3 text-right">{formatMetricValue(row, row.treatment_value)}</td>
+            <td className="num p-3 text-right">{formatDifference(row)}</td><td className="num p-3 text-right">{formatInterval(row)}</td><td className="num p-3 text-right">{formatP(row.p_value)}</td>
+          </tr>)}</tbody>
+        </table></div>
+      </details>
+    </Section>
 
-      <Section
-        kicker="Guardrails"
-        title="Movement, with the margin unset"
-        lede="Guardrail rows use the same estimate and interval style as the primary metric. A pass or fail flag is absent. Approximately unchanged has no numeric band in this export."
-      >
-        <ul className="grid gap-2">
-          {guardrails.map((row) => (
-            <li key={row.metric_name} className="rounded-xl border border-line bg-card px-3 py-2 text-sm">
-              <span className="font-medium">{labelMetric(row.metric_name)}</span>
-              <span className="text-muted">
-                {" "}
-                · {formatDifference(row)} · {formatInterval(row)} · null rejected at 0.05:{" "}
-                {row.null_rejected_at_alpha ? "yes" : "no"}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Section>
+    <Section kicker="Decision status" title={snapshot.product_decision ? `Recorded decision: ${displayText(snapshot.product_decision)}` : "Launch criteria are still open"} lede="Statistical significance does not establish an acceptable business trade-off. No numeric tolerance has been defined for the guardrails.">
+      <div className="data-panel p-4 sm:p-6">
+        <ul className="divide-y divide-line">{guardrails.map((row) => <li key={row.metric_name} className="flex flex-wrap justify-between gap-2 py-3 text-sm"><span className="font-medium">{labelMetric(row.metric_name)}</span><span className="num text-muted">{formatDifference(row)} · 95% CI {formatInterval(row)}</span></li>)}</ul>
+        <p className="mt-4 border-t border-line pt-4 text-sm leading-6 text-muted">Define acceptable movement in these measures, then record a ship, iterate, or do-not-ship decision. {snapshot.product_decision ? "The export contains a product decision." : "The export currently contains no product decision."}</p>
+      </div>
+    </Section>
 
-      <Section
-        kicker="Decision frames"
-        title="Ship, iterate, or do not ship"
-        lede="No product decision has been recorded. The primary result is promising, but launch criteria still need guardrail limits."
-      >
-        <div className="grid gap-3 lg:grid-cols-3">
-          <Frame
-            title="Ship"
-            selected={selected === "ship"}
-            body={
-              primaryAboveZero
-                ? `The primary interval sits above zero (${formatInterval(primary)}). Ship also asks for guardrails inside a numeric margin. That margin is unset.`
-                : `The primary interval does not sit above zero (${formatInterval(primary)}). The guardrail margin is unset.`
-            }
-          />
-          <Frame
-            title="Iterate"
-            selected={selected === "iterate"}
-            body={
-              rejectedGuardrails.length
-                ? `${rejectedGuardrails.map((row) => labelMetric(row.metric_name)).join(", ")} ${
-                    rejectedGuardrails.length === 1 ? "has" : "have"
-                  } a statistically significant difference. Iterate would weigh that movement once a guardrail limit exists.`
-                : "No guardrail has a statistically significant difference. The margin is unset."
-            }
-          />
-          <Frame
-            title="Do not ship"
-            selected={selected === "do_not_ship"}
-            body={
-              primaryCoversZero
-                ? `The primary interval includes zero (${formatInterval(primary)}).`
-                : `The primary interval excludes zero and the absolute difference is ${formatDifference(primary)}.`
-            }
-          />
-        </div>
-        <div className="mt-3">
-          <Note>
-            {selected ? `Recorded decision: ${selected}.` : "No product decision has been recorded."} Statistical significance at {primary.alpha} is not a launch recommendation.
-          </Note>
-        </div>
-      </Section>
-
-      <Section kicker="Technical detail" title="How the experiment was calculated">
-        <details className="data-panel p-4">
-          <summary className="cursor-pointer text-sm text-ink">Read-only SQL from the dbt compile</summary>
-          <pre className="mt-3 overflow-x-auto text-xs leading-5 text-muted">{snapshot.experiment_sql}</pre>
-        </details>
-      </Section>
-    </article>
-  );
+    <Section kicker="Study detail" title="Assignment and measurement">
+      <p className="max-w-3xl text-sm leading-6 text-muted">Applications are assigned at application start. Treatment explains why bank connection is required using shorter copy. This result includes only applicants who subsequently start bank connection; applicants who never start are outside the primary metric.</p>
+      <details className="mt-4 data-panel p-4">
+        <summary className="text-sm font-semibold">Group sizes and statistical method</summary>
+        <div className="table-scroll mt-3"><table className="data-table w-full text-left text-sm">
+          <thead><tr><th className="p-3">Population</th><th className="p-3 text-right">Control</th><th className="p-3 text-right">Treatment</th></tr></thead>
+          <tbody>
+            <Sample label="Assigned at application start" control={primary.n_assigned_control} treatment={primary.n_assigned_treatment} />
+            <Sample label="Started bank connection" control={primary.n_control} treatment={primary.n_treatment} />
+            <Sample label="Completed bank connection" control={primary.conversions_control} treatment={primary.conversions_treatment} />
+            <Sample label="Never started bank connection" control={primary.n_assigned_outside_population_control} treatment={primary.n_assigned_outside_population_treatment} />
+          </tbody>
+        </table></div>
+        <p className="mt-4 text-xs leading-6 text-muted">Test: {displayText(primary.test_method)}. Interval: {displayText(primary.interval_method)}. Significance level: {primary.alpha}. Null rejected: {primary.null_rejected_at_alpha == null ? "Not available" : primary.null_rejected_at_alpha ? "Yes" : "No"}.</p>
+      </details>
+      <details className="mt-3 data-panel p-4"><summary className="text-sm font-semibold">Read-only SQL behind the experiment</summary><pre className="mt-4 overflow-x-auto text-xs leading-5 text-muted">{snapshot.experiment_sql}</pre></details>
+    </Section>
+  </article>;
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="data-panel px-3 py-3">
-      <dt className="text-[11px] uppercase tracking-wide text-muted">{label}</dt>
-      <dd className="num mt-1 text-lg text-ink">{value}</dd>
-    </div>
-  );
-}
-
-function Frame({ title, body, selected }: { title: string; body: string; selected: boolean }) {
-  return (
-    <article className={`rounded-2xl border p-4 ${selected ? "border-pine bg-pine-soft" : "border-line bg-card"}`}>
-      <p className="text-xs uppercase tracking-wide text-muted">{selected ? "Selected in the export" : "Unselected"}</p>
-      <h3 className="mt-1 font-display text-2xl text-ink">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
-    </article>
-  );
-}
-
-function formatMetricValue(row: ExperimentRow, value: number | null): string {
-  if (value == null) return "—";
-  if (row.unit === "proportion") return formatPercent(value);
-  if (row.unit === "minutes") return `${value.toFixed(1)} min`;
-  return value.toFixed(2);
+function Stat({ label, value }: { label: string; value: string }) { return <div><dt>{label}</dt><dd>{value}</dd></div>; }
+function Sample({ label, control, treatment }: { label: string; control: number | null; treatment: number | null }) { return <tr><td className="p-3">{label}</td><td className="num p-3 text-right">{formatCount(control)}</td><td className="num p-3 text-right">{formatCount(treatment)}</td></tr>; }
+function formatMetricValue(row: ExperimentRow, value: number | null) {
+  if (value == null) return "Not available";
+  return row.unit === "proportion" ? formatPercent(value) : row.unit === "minutes" ? `${value.toFixed(1)} min` : value.toFixed(3);
 }

@@ -19,15 +19,14 @@ export default function AskPage() {
 
   return (
     <article className="page-content">
-      <p className="text-xs uppercase tracking-[0.16em] text-copper">05 — Ask LendFlow</p>
-      <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">Ask the governed export</h1>
+      <p className="eyebrow">Ask LendFlow</p>
+      <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">A question, with the evidence.</h1>
       <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
-        Choose a suggested question or ask about the funnel, operations, and experiment. Answers use the same
-        published figures as the dashboard. Unsupported questions return no figures.
+        Choose a question below or type a related one. Answers come from the dashboard's published metrics. Questions outside this library return no figures.
       </p>
 
       <form
-        className="mt-6 flex flex-col gap-3 sm:flex-row"
+        className="ask-form mt-6"
         onSubmit={(event) => {
           event.preventDefault();
           ask(draft);
@@ -38,23 +37,22 @@ export default function AskPage() {
         </label>
         <input
           id="ask-question"
+          required
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Ask a question the export can answer"
-          className="w-full rounded-full border border-line bg-card px-4 py-2 text-ink"
+          placeholder="For example: where do applications drop off?"
         />
-        <button type="submit" className="rounded-full bg-ink px-5 py-2 text-sm text-paper">
-          Ask
+        <button type="submit" disabled={!draft.trim()} className="primary-button">
+          Show answer
         </button>
       </form>
 
-      <ul className="mt-4 flex flex-wrap gap-2">
+      <ul className="suggested-questions" aria-label="Suggested questions">
         {ASK_EXAMPLES.map((example) => (
           <li key={example.question}>
             <button
               type="button"
               onClick={() => ask(example.question)}
-              className="rounded-full border border-line bg-card px-3 py-1.5 text-left text-sm text-ink hover:border-muted"
             >
               {example.question}
             </button>
@@ -65,9 +63,7 @@ export default function AskPage() {
       {answer && submitted ? (
         <AnswerView question={submitted} answer={answer} />
       ) : (
-        <p className="mt-6 max-w-2xl text-sm leading-6 text-muted">
-          Pick a suggested question, or type one. Unsupported questions return no figures.
-        </p>
+        <p className="mt-6 text-sm text-muted">Your answer and its supporting query will appear here.</p>
       )}
     </article>
   );
@@ -77,7 +73,7 @@ function AnswerView({ question, answer }: { question: string; answer: AskAnswer 
   return (
     <section className="mt-8" aria-live="polite" data-status={answer.status} data-intent={answer.intent}>
       <p className="text-xs uppercase tracking-[0.16em] text-copper">
-        {answer.status === "answered" ? "From the export" : "Refused"}
+        {answer.status === "answered" ? "Published answer" : "Outside the question library"}
       </p>
       <h2 className="mt-1 font-display text-2xl tracking-tight text-ink">{displayText(answer.heading)}</h2>
       <p className="mt-2 text-sm text-muted">Question: {question}</p>
@@ -90,7 +86,7 @@ function AnswerView({ question, answer }: { question: string; answer: AskAnswer 
       </div>
       <div className="mt-4">
         {answer.status === "answered" ? (
-          <Note>Interpretation is generated for the demo from these rows. It is not a live model.</Note>
+          <Note>This is a curated answer based on the published rows.</Note>
         ) : (
           <Note>No figure is filled in for this question.</Note>
         )}

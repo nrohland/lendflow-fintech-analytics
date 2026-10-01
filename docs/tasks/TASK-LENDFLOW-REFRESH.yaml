@@ -6,6 +6,7 @@ objective: >
 context: >
   Owner approved continuation after the audit on 2026-09-29. Keep the case study
   synthetic and unofficial. Use governed metrics and deterministic answers.
+  Owner requested a final full-interface design review on 2026-10-01.
 graph_id: feature
 owner: nrohland
 reviewer: independent-reviewer
@@ -35,6 +36,9 @@ acceptance:
   - Curated-answer boundaries have automated tests
   - CI verifies source contracts and the committed dashboard snapshot
   - Architecture and run instructions reflect the implemented project
+  - Charts show readable values, denominators, and experiment confidence intervals
+  - Dense evidence remains available in expandable data tables
+  - Final review records runtime checks and the analytical handoff
   - Draft PR; only nrohland merges
 constraints:
   - One task contract produces one draft PR
