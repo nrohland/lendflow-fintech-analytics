@@ -23,7 +23,7 @@ try {
   if(i===39)throw Error('Production server did not become ready');
   await new Promise(resolve=>setTimeout(resolve,250));
  }
- browser=await chromium.launch({headless:true});
+ browser=await chromium.launch({headless:true,...(process.env.SECURITY_BROWSER_CHANNEL?{channel:process.env.SECURITY_BROWSER_CHANNEL}:{})});
  for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
   const page=await browser.newPage({viewport});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
@@ -42,6 +42,15 @@ try {
     await page.getByRole('button',{name:'Close AI analyst',exact:true}).click();
    }
    assert.deepEqual(errors,[],'Browser runtime errors');
+   const policy=await page.locator('meta[name=build-script-policy]').getAttribute('content');
+   assert.ok(policy.includes('sha256-'),'Missing build script hashes');
+   assert.ok(!policy.includes('unsafe-inline') && !policy.includes('unsafe-eval'));
+   const blocked=await page.evaluate(async()=>{
+    const probe=document.createElement('script');probe.textContent='window.__unexpectedInlineExecution=true';document.head.appendChild(probe);
+    await new Promise(resolve=>setTimeout(resolve,40));
+    return window.__unexpectedInlineExecution!==true;
+   });
+   assert.ok(blocked,'Arbitrary inline script executed');
    const name=(route==='/'?'home':route.replaceAll('/','-'))+'-'+viewport.width;
    await page.screenshot({path:path.join(output,name+'.png'),fullPage:true});
   }
