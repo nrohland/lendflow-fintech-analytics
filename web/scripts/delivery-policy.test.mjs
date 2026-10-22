@@ -19,6 +19,15 @@ test('protects both static-server and Vercel Next output; rejects dynamic fallba
   process.chdir(root);process.argv.length=2;
   await hardenBuild();
   for(const file of ['out/index.html','.next/server/app/index.html']) assert.ok((await readFile(file,'utf8')).includes('build-script-policy'));
+  manifest.routes['/_global-error']={initialRevalidateSeconds:false};
+  await writeFile('.next/prerender-manifest.json',JSON.stringify(manifest));
+  await writeFile('.next/server/app-paths-manifest.json',JSON.stringify({'/page':'app/page.js','/_global-error/page':'app/_global-error/page.js'}));
+  await hardenBuild();
+  manifest.routes['/private']={initialRevalidateSeconds:false};
+  await writeFile('.next/prerender-manifest.json',JSON.stringify(manifest));
+  await writeFile('.next/server/app-paths-manifest.json',JSON.stringify({'/page':'app/page.js','/private/page':'app/private/page.js'}));
+  await assert.rejects(hardenBuild(),/not prerendered/);
+  await writeFile('.next/server/app-paths-manifest.json',JSON.stringify({'/page':'app/page.js'}));
   manifest.dynamicRoutes['/private/[id]']={fallback:null};
   await writeFile('.next/prerender-manifest.json',JSON.stringify(manifest));
   await assert.rejects(hardenBuild(),/nonce/);

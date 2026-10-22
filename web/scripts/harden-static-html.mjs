@@ -60,7 +60,12 @@ export async function hardenBuild() {
   for(const name of names) {
    if(manifest.routes[name]?.initialRevalidateSeconds!==false) throw Error(`Route ${name} is not immutable prerendered HTML`);
    try {await access(path.join('.next/server/app',(name==='/'?'index':name.slice(1))+'.html'));}
-   catch {throw Error(`Route ${name} is not prerendered; a nonce policy is required`);}
+   catch {
+    // Vercel owns this built-in fallback and does not emit its HTML artifact.
+    // It is not an application route; never exempt user-defined routes here.
+    if(name==='/_global-error') continue;
+    throw Error(`Route ${name} is not prerendered; a nonce policy is required`);
+   }
   }
  }
  // Vercel's Next adapter consumes .next even when local delivery uses out.
