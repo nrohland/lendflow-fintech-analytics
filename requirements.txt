@@ -1,5 +1,5 @@
 numpy==2.2.6
-pandas==2.3.3
+pandas==3.0.6
 pyarrow==26.0.0
 duckdb==1.4.4
 dbt-duckdb==1.11.0
