@@ -85,3 +85,7 @@ Ask LendFlow matches a fixed question list to `product_metrics` and `fct_experim
 ## Not built yet
 
 A formal EDA notebook is a later contract.
+
+## Security maintenance
+
+Weekly GitHub-hosted dependency, secret and CodeQL checks; reviewed dependency updates without automatic merge. See [cadence, exceptions and monthly review](docs/security-maintenance.md).
