@@ -89,3 +89,5 @@ A formal EDA notebook is a later contract.
 ## Security maintenance
 
 Weekly GitHub-hosted dependency, secret and CodeQL checks; reviewed dependency updates without automatic merge. See [cadence, exceptions and monthly review](docs/security-maintenance.md).
+
+The web app exports static HTML to web/out and Vercel publishes those files directly. No runtime server is deployed. Local npm start in web previews the export with Python 3; npm run dev remains the React development server. See [the delivery decision](docs/static-security-delivery.md).

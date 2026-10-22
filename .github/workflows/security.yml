@@ -103,7 +103,7 @@ jobs:
         env:
           SECURITY_BROWSER_CHANNEL: chrome
           EVIDENCE_DIR: ${{ runner.temp }}/security-ui-evidence
-        run: node scripts/security_smoke.mjs '{"directory":"web","static":false,"routes":["/","/ask","/experiment","/funnel","/operations"],"kind":"lendflow"}'
+        run: node scripts/security_smoke.mjs '{"directory":"web","static":true,"routes":["/","/ask","/experiment","/funnel","/operations"],"kind":"lendflow"}'
       - name: Retain public demo captures
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
