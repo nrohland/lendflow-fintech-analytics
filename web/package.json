@@ -4,10 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/harden-static-html.mjs .next/server/app",
     "start": "next start",
-    "postbuild": "node scripts/harden-static-html.mjs .next/server/app",
-    "test:security-html": "node --test scripts/harden-static-html.test.mjs"
+    "test:security-html": "node --test scripts/harden-static-html.test.mjs scripts/delivery-policy.test.mjs"
   },
   "dependencies": {
     "next": "16.4.2",
